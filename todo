@@ -1,0 +1,13 @@
+* buildnum for non-cvs deployment?
+
+--
+
+* for use as a forum for specific web sites (i.e. etymongrel, Pat
+  Cullen's NCAA betting pool)
+  - create user through marmaduke
+  - provide a web service that allows setting subs.quick -- maybe
+    generic user preferences xml-rpc API; should support an
+    "isDefault" method per-pref; if the subs.quick pref for the user
+    does not have the default value, the user may have changed it, and
+    we should append instead of overwriting; alternately, only prepend
+  - some form of quick category instructions?

@@ -1,0 +1,27 @@
+BASE SERVLETS FOR AUTHENTICATION
+
+WebKit Sessions will be used for authentication.  Pages that require
+an authenticated user will be derived from the servlet
+  AuthYammerPage
+and those that do not will be derived from
+  YammerPage
+AuthYammerPage itself will be derived from YammerPage.  YammerPage
+will have a login widget on the side, at the top, or in some other
+prominent but out of the way spot; in the equivalent spot,
+AuthYammerPage will have a logout button.
+
+If an attempt is made to render an AuthYammerPage without valid
+authentication, the browser will be redirected to the guest page,
+which is derived from YammerPage.
+
+/index.psp: derived from AuthYammerPage; where one is sent after
+            successful login or registration
+/guest/index.psp: derived from YammerPage; where one is sent if
+                  bounced by an AuthYammerPage
+/register/index.psp: derived from the registration page
+
+
+
+In the user's Session, the following data is stored:
+  'username': the user's name, which must consist of identifier
+              characters

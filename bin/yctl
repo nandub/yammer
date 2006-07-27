@@ -1,0 +1,210 @@
+#!/usr/bin/env python2.4
+
+import sys
+import os, os.path
+if not os.environ.has_key('ENV_HARNESS'):
+  envh= os.path.dirname(sys.argv[0]) + '/envharness'
+  os.execv(envh, [envh] + sys.argv)
+
+import textwrap, getopt
+import YDB, os, Gale, UserPrefs, UserUtilities
+from InstallSettings import settings
+import UserUtilities, commands
+
+def order(ordinal):
+  def functon(func):
+    func.order= ordinal
+    return func
+  return functon
+
+
+
+@order(90)
+def cmd_restart(args):
+  '''[as|ws|pop|all]...: Restart appserver, webserver, populator, or all.'''
+  return procCtl(args, 'restart')
+
+@order(90)
+def cmd_start(args):
+  '''[as|ws|pop|all]...: Start appserver, webserver, populator, or all.'''
+  return procCtl(args, 'start')
+
+@order(90)
+def cmd_stop(args):
+  '''[as|ws|pop|all]...: Stop appserver, webserver, populator, or all.'''
+  return procCtl(args, 'stop')
+
+def procCtl(args, verb):
+  if 'all' in args:
+    args= ['as', 'ws', 'pop']
+  for arg in args:
+    os.system("%(arg)sctl %(verb)s" % locals())
+  return 0
+
+@order(81)
+def cmd_set(args):
+  '''
+  [[-f] user@domain|user@domain/pref|user@domain/pref=value]:
+  Without slash: print all preferences for user.  With slash but no
+  equal sign: print given preference for user.  With equal sign:
+  set value of preference for user.  By default, you cannot set
+  a preference for a user if the user does not already have it set to
+  something else; to override this, precede the argument with a -f
+  switch.
+  '''
+  ov, args= getopt.getopt(args, 'f:')
+  for o,v in ov:
+    setOne(v, force=True)
+  for arg in args:
+    setOne(arg)
+
+@order(80)
+def cmd_get(args):
+  ''': Same as set.  (It may look more natural to use get when
+  checking values.)'''
+  return cmd_set(args)
+
+def setOne(arg, force=False):
+  equalia= arg.split('=', 1)
+  key= equalia[0]
+  slashia= key.split('/', 1)
+  user= users(slashia[0])
+  if len(user) == 0:
+    sys.stderr.write('User %s not found.\n' % slashia[0])
+    return
+  if len(user) > 1:
+    sys.stderr.write('Username %s is ambiguous; please specify one '
+        'of: %s.\n' % (slashia[0], ', '.join(user)))
+    return
+  user= user[0]
+  u= UserPrefs.getInstance(user)
+
+  def printVal(k):
+    print '%s/%s=%s' % (user, k, commands.mkarg(u[k]).lstrip())
+
+  if len(slashia) == 1:
+    for k in u.keys():
+      printVal(k)
+  else:
+    k= slashia[1]
+    if len(equalia) == 1:
+      printVal(k)
+    else:
+      b= u.has_key(k)
+      if b or force:
+        u[k]= equalia[1]
+      elif not b:
+        sys.stderr.write('User %(user)s has no pref "%(k)s"; use -f '
+          'to set it regardless.\n' % locals())
+
+def users(userPfx):
+  if '@' in userPfx:
+    return [userPfx]
+  else:
+    return [u for u in
+            ['%s@%s' % (userPfx, domain)
+             for domain in settings['galeDomains'].split()]
+            if UserUtilities.userExists(u)]
+
+def cmd_deleteuser(args):
+  '''[user...]: Delete users.'''
+  for user in args:
+    us= users(user)
+    if len(us) == 0:
+      sys.stderr.write('No user named %s.\n' % user)
+    elif len(us) > 1:
+      sys.stderr.write('Username %s is ambiguous; please specify one '
+        'of %s.\n' % (user, ', '.join(us)))
+    else:
+      UserUtilities.deleteUser(us[0])
+
+def cmd_rmuserlogs(users):
+  '''[user...]: Delete private messages to user.'''
+  curs= YDB.getCursor()
+  def idPat(query, hash={}):
+    ids= YDB.executeQuery(curs, query, hash)
+    return '(%s)' % ','.join([str(id) for id, in ids])
+  for user in users:
+    ids= idPat('SELECT puffid FROM tos_t WHERE '
+        'cat = %(user)s', locals())
+    ids= idPat('SELECT puffid FROM puffs_t WHERE '
+        'puffid in ' + ids + ' AND encrypted=1')
+    print 'Deleting %d puffs for %s:\n%s' % (ids.count(','), user,
+        ids)
+    YDB.executeQuery(curs, 'DELETE FROM puffs_t WHERE puffid in ' + ids, {})
+    YDB.executeQuery(curs, 'DELETE FROM tos_t WHERE puffid in ' + ids, {})
+
+
+def cmd_vacuum(args):
+  ''': Clean up after self.  Deletes any preferences that no longer
+  have corresponding users.'''
+  curs= YDB.getCursor()
+  users= YDB.executeQuery(curs, 'SELECT DISTINCT p.login, u.login '
+      'FROM userprefs_t p LEFT JOIN user_t u ON u.login=p.login',
+      {})
+  for pu, uu in users:
+    if uu is None:
+      sys.stderr.write('Deleting user: %s.\n' % pu)
+      YDB.executeQuery(curs, 'DELETE FROM userprefs_t '
+          'WHERE login=%(pu)s', locals())
+
+
+@order(70)
+def cmd_mysql(args):
+  ''': Drops into mysql client with correct username, password, and
+  database.'''
+  os.system('mysql -u %(dbUser)s --password=%(dbPassword)s %(dbSchema)s'
+      % settings)
+
+@order(70)
+def cmd_run(args):
+  '''[command [args...]]: Runs an arbitrary command with the Yammer
+  environment variables set.'''
+  os.spawnvp(os.P_WAIT, args[0], args)
+
+# guts
+
+_g= globals().copy()
+_methods= [(n[4:], _g[n]) for n in _g if n.startswith('cmd_')]
+for _n, _m in _methods:
+  if not hasattr(_m, 'order'):
+    _m.order= 0
+_methods.sort(lambda x, y: -cmp(x[1].order, y[1].order))
+
+def wrap(s, initial=2, indent=4):
+  wrapper= textwrap.TextWrapper(initial_indent=' ' * initial,
+    subsequent_indent=' ' * indent)
+  return wrapper.fill(' '.join([l.strip() for l in s.split('\n')]))
+
+def usage():
+  cmd= sys.argv[0]
+  print 'Usage: %s [cmd] [args...]' % cmd
+  for n, meth in _methods:
+    doc= meth.__doc__
+    s= ' '
+    if doc.startswith(':'):
+      s= ''
+    print
+    print wrap('  %s %s%s%s' % (os.path.basename(cmd), n,
+      s, meth.__doc__))
+  return 1
+
+silent= True
+def main(args):
+  if len(args) < 1:
+    return usage()
+  cmd= args[0]
+  if cmd == '-v':
+    global silent
+    silent= False
+    return main(args[1:])
+  if silent and 'debugSQL' in settings:
+    del settings['debugSQL']
+  methdict= dict(_methods)
+  if not cmd in methdict:
+    return usage()
+  return methdict[cmd](args[1:])
+
+
+if __name__ == '__main__':
+  sys.exit(main(sys.argv[1:]))

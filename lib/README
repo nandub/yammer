@@ -1,0 +1,7 @@
+This directory is automatically added to the python library search
+path for cgi scripts, servlets, and programs started from
+yammer.net/bin.  It contains:
+
+Servlet code (*Page.py)
+Utility classes
+Install settings

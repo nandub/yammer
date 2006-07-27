@@ -1,0 +1,252 @@
+Index: bin/expire
+===================================================================
+RCS file: /ofb/cvs/yammer.net/bin/expire,v
+retrieving revision 1.7
+diff -r1.7 expire
+29c29
+<   'SELECT MAX(puffid) FROM %(dbSchema)s.puffs_t WHERE ssdate < ' +
+---
+>   'SELECT MAX(puffid) FROM puffs_t WHERE ssdate < ' +
+35c35
+<     'SELECT COUNT(*) FROM %(dbSchema)s.puffs_t WHERE puffid <= ' +
+---
+>     'SELECT COUNT(*) FROM puffs_t WHERE puffid <= ' +
+39c39
+<     'SELECT COUNT(*) FROM %(dbSchema)s.puffs_t WHERE puffid > ' +
+---
+>     'SELECT COUNT(*) FROM puffs_t WHERE puffid > ' +
+53c53
+<       'DELETE FROM %(dbSchema)s.puffs_t WHERE puffid <= %(id)s',
+---
+>       'DELETE FROM puffs_t WHERE puffid <= %(id)s',
+56c56
+<       'DELETE FROM %(dbSchema)s.tos_t WHERE puffid <= %(id)s',
+---
+>       'DELETE FROM tos_t WHERE puffid <= %(id)s',
+Index: bin/regencert
+===================================================================
+RCS file: /ofb/cvs/yammer.net/bin/regencert,v
+retrieving revision 1.2
+diff -r1.2 regencert
+9c9
+<   openssl req -new -x509 -days 365 -key $YAMMER_ROOT/Configs/server.key \
+---
+>   openssl req -new -x509 -days 3650 -key $YAMMER_ROOT/Configs/server.key \
+Index: bin/onetime/adduserdomain
+===================================================================
+RCS file: /ofb/cvs/yammer.net/bin/onetime/adduserdomain,v
+retrieving revision 1.2
+diff -r1.2 adduserdomain
+15,16c15
+<   rs= YDB.executeQuery(curs, 'SELECT login from ' +\
+<     '%(dbSchema)s.user_t', {})
+---
+>   rs= YDB.executeQuery(curs, 'SELECT login from user_t', {})
+21c20
+<       YDB.executeQuery(curs, 'UPDATE %(dbSchema)s.user_t ' + \
+---
+>       YDB.executeQuery(curs, 'UPDATE user_t '
+23,24c22,23
+<   rs= YDB.executeQuery(curs, 'SELECT DISTINCT login FROM ' +\
+<     '%(dbSchema)s.userprefs_t', {})
+---
+>   rs= YDB.executeQuery(curs, 'SELECT DISTINCT login FROM '
+>     'userprefs_t', {})
+29c28
+<       YDB.executeQuery(curs, 'UPDATE %(dbSchema)s.userprefs_t ' + \
+---
+>       YDB.executeQuery(curs, 'UPDATE userprefs_t '
+Index: bin/onetime/checkmonotony
+===================================================================
+RCS file: /ofb/cvs/yammer.net/bin/onetime/checkmonotony,v
+retrieving revision 1.2
+diff -r1.2 checkmonotony
+17,18c17,18
+<   rs= YDB.executeQuery(curs, 'SELECT MIN(puffid) FROM ' +
+<     '%(dbSchema)s.puffs_t', {})
+---
+>   rs= YDB.executeQuery(curs, 'SELECT MIN(puffid) FROM '
+>     'puffs_t', {})
+20,21c20,21
+<   rs= YDB.executeQuery(curs, 'SELECT MAX(puffid) FROM ' +
+<     '%(dbSchema)s.puffs_t', {})
+---
+>   rs= YDB.executeQuery(curs, 'SELECT MAX(puffid) FROM '
+>     'puffs_t', {})
+26,27c26,27
+<     rs= YDB.executeQuery(curs, 'SELECT puffid,ssdate,date FROM ' +
+<       '%(dbSchema)s.puffs_t WHERE puffid >= %(i)s AND ' +
+---
+>     rs= YDB.executeQuery(curs, 'SELECT puffid,ssdate,date FROM '
+>       'puffs_t WHERE puffid >= %(i)s AND '
+Index: bin/onetime/mgrlog2puffstandtost
+===================================================================
+RCS file: /ofb/cvs/yammer.net/bin/onetime/mgrlog2puffstandtost,v
+retrieving revision 1.3
+diff -r1.3 mgrlog2puffstandtost
+13c13
+<   pufftinsert= 'INSERT INTO %(dbSchema)s.puffs_t ' + \
+---
+>   pufftinsert= 'INSERT INTO puffs_t ' + \
+18c18
+<   tostinsert= 'INSERT INTO %(dbSchema)s.tos_t ' + \
+---
+>   tostinsert= 'INSERT INTO tos_t ' + \
+38d37
+< dbSchema= settings['dbSchema']
+44,45c43,44
+<   curs.execute(("SELECT * FROM %s.Log LIMIT " + 
+<                 "%s") % (dbSchema, BATCHSIZE))
+---
+>   curs.execute(("SELECT * FROM Log LIMIT " + 
+>                 "%s") % (BATCHSIZE))
+63,64c62,63
+<   curs.execute("DELETE FROM %s.Log LIMIT %s" %
+<                (dbSchema, len(rows)))
+---
+>   curs.execute("DELETE FROM Log LIMIT %s" %
+>                (len(rows)))
+Index: bin/onetime/obscurepriv
+===================================================================
+RCS file: /ofb/cvs/yammer.net/bin/onetime/obscurepriv,v
+retrieving revision 1.2
+diff -r1.2 obscurepriv
+15,16c15,16
+<   rs= GaleDB.executeQuery(curs, 'SELECT puffid, body FROM ' + \
+<     '%(dbSchema)s.puffs_t WHERE encrypted = 1', {})
+---
+>   rs= GaleDB.executeQuery(curs, 'SELECT puffid, body FROM '
+>     'puffs_t WHERE encrypted = 1', {})
+26c26
+<     GaleDB.executeQuery(curs, 'UPDATE %(dbSchema)s.puffs_t ' + \
+---
+>     GaleDB.executeQuery(curs, 'UPDATE puffs_t '
+Index: bin/onetime/renamesendrows
+===================================================================
+RCS file: /ofb/cvs/yammer.net/bin/onetime/renamesendrows,v
+retrieving revision 1.2
+diff -r1.2 renamesendrows
+14c14
+<   rs= GaleDB.executeQuery(curs, 'UPDATE %(dbSchema)s.userprefs_t ' +\
+---
+>   rs= GaleDB.executeQuery(curs, 'UPDATE userprefs_t ' +\
+Index: lib/GaleClientYammerPage.py
+===================================================================
+RCS file: /ofb/cvs/yammer.net/lib/GaleClientYammerPage.py,v
+retrieving revision 1.53
+diff -r1.53 GaleClientYammerPage.py
+116,117c116,117
+<     query= ("SELECT COUNT(*) FROM %%(dbSchema)s.puffs_t p, " + \
+<             "%%(dbSchema)s.tos_t t WHERE " + \
+---
+>     query= ("SELECT COUNT(*) FROM puffs_t p, " + \
+>             "tos_t t WHERE " + \
+Index: lib/GaleDB.py
+===================================================================
+RCS file: /ofb/cvs/yammer.net/lib/GaleDB.py,v
+retrieving revision 1.24
+diff -r1.24 GaleDB.py
+93c93
+<           'FROM %(dbSchema)s.puffs_t p, %(dbSchema)s.tos_t t ' + \
+---
+>           'FROM puffs_t p, tos_t t ' + \
+137c137
+<            'FROM %%(dbSchema)s.puffs_t WHERE ' + \
+---
+>            'FROM puffs_t WHERE ' + \
+145c145
+<             'FROM %(dbSchema)s.tos_t WHERE puffid in ' + \
+---
+>             'FROM tos_t WHERE puffid in ' + \
+177c177
+<   pufftinsert= 'INSERT INTO %(dbSchema)s.puffs_t ' + \
+---
+>   pufftinsert= 'INSERT INTO puffs_t ' + \
+182c182
+<   tostinsert= 'INSERT INTO %(dbSchema)s.tos_t ' + \
+---
+>   tostinsert= 'INSERT INTO tos_t ' + \
+Index: lib/KeyStore.py
+===================================================================
+RCS file: /ofb/cvs/yammer.net/lib/KeyStore.py,v
+retrieving revision 1.6
+diff -r1.6 KeyStore.py
+91,92c91
+<       yg.gsend(id, ['_gale.notice.' + id],
+<         'new key: %(id)s %(name)s' % locals())
+---
+>       yg.gsend(id, ['_gale.notice.' + id], msg)
+Index: lib/UserPrefs.py
+===================================================================
+RCS file: /ofb/cvs/yammer.net/lib/UserPrefs.py,v
+retrieving revision 1.30
+diff -r1.30 UserPrefs.py
+146c146
+<       FROM %(dbSchema)s.userprefs_t
+---
+>       FROM userprefs_t
+167c167
+<         UPDATE %(dbSchema)s.userprefs_t
+---
+>         UPDATE userprefs_t
+172c172
+<         INSERT INTO %(dbSchema)s.userprefs_t 
+---
+>         INSERT INTO userprefs_t 
+Index: lib/UserUtilities.py
+===================================================================
+RCS file: /ofb/cvs/yammer.net/lib/UserUtilities.py,v
+retrieving revision 1.11
+diff -r1.11 UserUtilities.py
+38,39c38,39
+<       num= curs.execute(('SELECT password FROM %s.user_t WHERE ' + \
+<                       'login="%s"') % (settings['dbSchema'], username))
+---
+>       num= curs.execute(('SELECT password FROM user_t WHERE ' + \
+>                       'login="%s"') % (username))
+66,67c66,67
+<   curs.execute(('SELECT * FROM %s.user_t WHERE ' + \
+<                   'login="%s"') % (settings['dbSchema'], username))
+---
+>   curs.execute(('SELECT * FROM user_t WHERE ' + \
+>                   'login="%s"') % (username))
+69c69
+<     curs.execute(('UPDATE %s.user_t SET password="%s" WHERE ' + \
+---
+>     curs.execute(('UPDATE user_t SET password="%s" WHERE ' + \
+71c71
+<                     (settings['dbSchema'], hashedpassword, username))
+---
+>                     (hashedpassword, username))
+73c73
+<     curs.execute(('INSERT INTO %s.user_t VALUES ' + \
+---
+>     curs.execute(('INSERT INTO user_t VALUES ' + \
+75c75
+<                    (settings['dbSchema'], username, hashedpassword))
+---
+>                    (username, hashedpassword))
+144c144
+<     'SELECT login FROM %(dbSchema)s.user_t WHERE login=%(username)s',
+---
+>     'SELECT login FROM user_t WHERE login=%(username)s',
+152c152
+<   YDB.executeQuery(curs, 'DELETE FROM %(dbSchema)s.user_t ' +
+---
+>   YDB.executeQuery(curs, 'DELETE FROM user_t ' +
+154c154
+<   YDB.executeQuery(curs, 'DELETE FROM %(dbSchema)s.userprefs_t ' +
+---
+>   YDB.executeQuery(curs, 'DELETE FROM userprefs_t ' +
+Index: lib/YDB.py
+===================================================================
+RCS file: /ofb/cvs/yammer.net/lib/YDB.py,v
+retrieving revision 1.15
+diff -r1.15 YDB.py
+32c32,33
+<                           passwd= settings['dbPassword'])
+---
+>                           passwd= settings['dbPassword'],
+>                           db= settings['dbSchema'])
+71d71
+<   newhash['dbSchema']= settings['dbSchema']

@@ -1,0 +1,31 @@
+#!/bin/sh
+
+[ -z "$ENV_HARNESS" ] && exec `dirname $0`/envharness "$0" "$@"
+LOGFILE=$YAMMER_ROOT/Logs/appserver.log
+
+start() {
+  ./AppServer start >> $LOGFILE 2>&1 &
+  echo AppServer started
+}
+
+stop() {
+  ./AppServer stop
+  echo AppServer stopped
+}
+
+cd $YAMMER_ROOT/bin/asworkdir/
+
+
+case $1 in
+  restart)
+    stop
+    start
+    ;;
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+esac
+

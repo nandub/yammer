@@ -1,0 +1,90 @@
+<%@ page extends="GaleClientYammerPage" %>
+<%@ page method="writeContent" %>
+<%@ page imports="YDB,GaleDB,InstallSettings:settings,time" %> 
+
+<%
+# Copyright 2002, 2004 John T. Reese.
+# email: jtr at ofb.net
+# 
+# This file is part of Yammer.
+# 
+# Yammer is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# Yammer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with Yammer; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%>
+
+
+<body>
+<%
+self.writeNotices()
+dorefresh= self.u['do.autorefresh'] == 'yes'
+if dorefresh and self.index == 0:%>
+<%
+if self.stage < 3:
+  ref= 30 + 30 * self.stage
+else:
+  ref= 120
+  self.stage= 9
+res.setHeader('Refresh', str(ref) + ";url=" + self.getStrippedUri() +
+  "?stage=" + str(self.stage + 1))
+%>
+
+<p>
+Page will refresh every
+<%
+m= ref / 60
+s= ref % 60
+%>
+<%if m > 0:%>
+  <%if m == 1:%>
+    <%= m %> minute
+  <% end %>
+  <%else:%>
+    <%= m %> minutes
+  <% end %>
+<%if s > 0:%>
+  and
+<% end %>
+<% end %>
+<%if s > 0:%>
+  <%= s %> seconds
+<% end %>
+</p>
+<% end %>
+  
+
+<script type="text/javascript">
+  function blitSub(loc) {
+    document.resubform1.subs.value= loc;
+  };
+  function resub() {
+    document.resubform1.stage.value= '0';
+    document.resubform1.submit();
+  };
+  function blitLocation(to) {
+    parent.send.blitLocation(to);
+  };
+  function blitSender(to) {
+    parent.send.blitSender(to);
+  };
+</script>
+
+
+
+<%
+self.displayPrivateCheckForm()
+self.writeFullLogTable()
+%>
+</body>
+
+

@@ -1,0 +1,66 @@
+#!/usr/bin/python
+
+import sys, re, os, glob, YammerUtils
+from InstallSettings import settings
+
+
+# maybe, when generating a file, include an md5sum, and then
+# if the md5sum doesn't match we know the file's been modified
+# by the admin; if the revisions are unequal and there are local
+# changes, do some kind of merge conflict thing
+def getRevision(str):
+  rm= re.search(r'^(.*)(\$Revision[^$]*\$)(.*)$', str)
+  return rm.group(2)
+
+verbose= 0
+if len(sys.argv) > 1 and sys.argv[1] == '-v':
+  verbose= 1
+  sys.argv= sys.argv[1:]
+
+if len(sys.argv) < 2:
+  files= glob.glob('*.yit')
+else:
+  files= sys.argv[1:]
+
+# extra, semi-dynamic setting
+settings['versionstring']= YammerUtils.getVersionString()
+s= settings.copy()
+
+for file in files:
+  if re.match(r'.+.yit$', file):
+    targ= re.sub(r'.yit$', '', file)
+  else:
+    sys.stderr.write("! illegal filename; sending output to stdout\n")
+    sys.exit(1)
+  if verbose:
+    sys.stderr.write("processing %s\n" % (file))
+  targf= open(targ, 'w')
+  mode= os.stat(file)[0]
+  fp= open(file, 'r')
+  template= fp.read()
+  fp.close()
+  while 1:
+    try:
+      tf= template % s
+      targf.write(tf)
+      break
+    except KeyError, ke:
+      for ka in ke.args:
+        rm= re.match(r'^(.*)\[(\d+)\]$', ka)
+        if rm is not None:
+          key= rm.group(1)
+          index= rm.group(2)
+          if s.has_key(key):
+            ss= s[key].split()
+            s[rm.group(0)]= ss[int(index)]
+          else:
+            sys.stderr.write('! error in %s: no key %s\n' % (file, key))
+            break
+        else:
+          sys.stderr.write('! error in %s: no key %s\n' % (file, ka))
+          break
+    except ValueError, ve:
+      sys.stderr.write('! error in %s: %s\n' % (file, ve))
+      break
+  targf.close()
+  os.chmod(targ, mode)

@@ -1,0 +1,69 @@
+#!/bin/sh
+
+# -y turns off interactive mode
+if [ "$1" = -y ]; then
+  shift
+else
+  INTER=true
+fi
+
+for td in Configs bin external lib Logs run Yammer
+do
+  if [ ! -d "$td" ]; then
+    echo $0: must be run from the top directory of the yammer.net \
+      distribution 1>&2
+    exit 1
+  fi
+done
+
+
+YROOT=`/bin/pwd`
+
+PYTHONPATH=$YROOT/lib
+export PYTHONPATH
+PATH=$YROOT/bin:$PATH
+export PATH
+
+if [ -n "$INTER" ]; then
+  if [[ ! -f lib/InstallSettings.py ]]; then
+    cp lib/InstallSettings.py.orig lib/InstallSettings.py
+  fi
+  chmod 600 lib/InstallSettings.py
+  cp lib/InstallSettings.py .
+  eval ${EDITOR:-vi} InstallSettings.py
+  echo "continue with install?"
+  read g
+  case "$g" in
+    [yY]*)  ;;
+    *)      echo "aborted at user option" 1>&2
+            exit 1
+            ;;
+  esac
+  mv InstallSettings.py lib
+fi
+
+
+
+if find . -name '*.yit' -print |
+   xargs template -v && 
+   echo &&
+   installDB &&
+   echo &&
+   regencert &&
+   echo &&
+   $YROOT/external/webwareinstall --password-prompt=no
+then
+  (
+    echo 
+    echo Installation was successful.
+    echo You may rerun $0 any time you want to change a setting.
+    echo
+  ) 1>&2
+else
+  (
+    echo
+    echo Rerun $0 when finished.  
+    echo To avoid being prompted, use the -y switch.
+    echo
+  ) 1>&2
+fi

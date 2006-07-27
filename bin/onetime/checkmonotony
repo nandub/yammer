@@ -1,0 +1,63 @@
+#!/usr/bin/python
+
+import sys
+import os, os.path
+if not os.environ.has_key('ENV_HARNESS'):
+  envh= os.path.dirname(sys.argv[0]) + '/../envharness'
+  os.execv(envh, [envh] + sys.argv)
+
+import YDB, GaleDB, Gale
+from InstallSettings import settings
+
+N= 50
+
+def checkMonotony():
+  #global N
+  curs= YDB.getCursor()
+  rs= YDB.executeQuery(curs, 'SELECT MIN(puffid) FROM '
+    'puffs_t', {})
+  minid= rs[0][0]
+  rs= YDB.executeQuery(curs, 'SELECT MAX(puffid) FROM '
+    'puffs_t', {})
+  maxid= rs[0][0]
+  id0, date0, dateP= minid, None, None
+  for i in range(minid, maxid + 1, N):
+    maxid1= min(i + N, maxid)
+    rs= YDB.executeQuery(curs, 'SELECT puffid,ssdate,date FROM '
+      'puffs_t WHERE puffid >= %(i)s AND '
+      'puffid < %(maxid1)s', locals())
+    j= i
+    for res in rs:
+      (puffid,ssdate,date)= res
+      if date0 == None:
+        date0= ssdate
+      wrongf, k= 0, j-1
+      if j != puffid:
+        print 'GAP: jump from %(k)s to %(puffid)s' % locals()
+        wrongf= 1
+      elif ssdate == None:
+        s= '; date also NULL'
+        if date is not None:
+          s= '; date=%(date)s'
+        print ('NULL ssdate: at puffid=%(puffid)s'+s) % locals()
+        wrongf= 1
+      elif dateP is not None and \
+          (ssdate - dateP).seconds < -86400:
+        print 'DISCONTINUITY: date went from %(dateP)s to %(ssdate)s' \
+          % locals()
+        wrongf= 1
+      if wrongf:
+        print '  %(id0)s..%(k)s: %(date0)s..%(dateP)s' % locals()
+        j, date0, id0= puffid, ssdate, puffid
+      dateP= ssdate
+      j += 1
+  YDB.close(curs)
+
+
+
+
+
+
+if settings.has_key('debugSQL'):
+  del settings['debugSQL']
+checkMonotony()

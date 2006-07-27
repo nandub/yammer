@@ -1,0 +1,69 @@
+#!/usr/bin/python
+
+import sys
+import os, os.path
+if not os.environ.has_key('ENV_HARNESS'):
+  envh= os.path.dirname(sys.argv[0]) + '/../envharness'
+  os.execv(envh, [envh] + sys.argv)
+
+import YDB, GaleDB
+from InstallSettings import settings
+
+def insertPuffHack(puff, puffid):
+  pufftinsert= 'INSERT INTO puffs_t ' + \
+          '( `body`,   `sender`,   `from`,   `date`,    ' + \
+          ' `ssdate`,   `encrypted`, puffid) ' + \
+    'VALUES(%(body)s, %(sender)s, %(from)s, %(date)s, ' + \
+          '%(ssdate)s, %(encrypted)s, ' + str(puffid) + ')'
+  tostinsert= 'INSERT INTO tos_t ' + \
+    'VALUES(%(puffid)s, %(cat)s, %(islocation)s)'
+
+  curs= YDB.getCursor()
+  GaleDB.executeQuery(curs, pufftinsert, puff)
+  islocation= 1
+  for cat in puff['locations']:
+    GaleDB.executeQuery(curs, tostinsert, locals())
+  islocation= 0
+  for cat in puff['keywords']:
+    GaleDB.executeQuery(curs, tostinsert, locals())
+  YDB.close(curs)
+
+
+
+
+
+
+puffid= int(sys.argv[1])
+print 'Starting at puffid %d' % puffid
+curs= YDB.getCursor()
+
+BATCHSIZE=30
+migrated= 0
+while 1:
+  curs.execute(("SELECT * FROM Log LIMIT " + 
+                "%s") % (BATCHSIZE))
+  rows= curs.fetchall()
+  if rows is None or len(rows) == 0:
+    print "All rows migrated!"
+    sys.exit(0)
+  for row in rows:
+    body,location,sender,galefrom,keywords,date,ssdate,encryptedfor= \
+      row
+    locations= location.split()
+    if keywords is not None and len(keywords) > 0:
+      keywords= keywords.split()
+    else:
+      keywords= []
+    puff= {'body': body, 'sender': sender, 'from': galefrom,
+           'date': date, 'ssdate': ssdate, 'locations': locations,
+           'keywords': keywords, 'encrypted': 0}
+    insertPuffHack(puff, puffid)
+    puffid= puffid + 1
+  curs.execute("DELETE FROM Log LIMIT %s" %
+               (len(rows)))
+  YDB.close(curs)
+  migrated= migrated + len(rows)
+  print
+  print "migrated: %d" % migrated
+
+

@@ -1,0 +1,41 @@
+#!/bin/sh
+
+PIDFILE=$YAMMER_ROOT/run/populator.pid
+LOGFILE=$YAMMER_ROOT/Logs/populator.log
+
+
+start() {
+    export GALE_CHARSET
+    if [ -f "$PIDFILE" ]; then
+      echo $PIDFILE still exists
+      echo pid `cat $PIDFILE`
+    else
+      GALE_CHARSET=ISO-8859-1 \
+      populator >> $LOGFILE 2>&1 &
+      echo $! > $PIDFILE
+      echo populator started
+    fi
+}
+
+stop() {
+    if [ -f "$PIDFILE" ]; then
+      kill `cat $PIDFILE`
+      rm -f $PIDFILE
+      echo populator stopped
+    else
+      echo no populator running
+    fi
+}
+
+case $1 in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  restart)
+    stop
+    start
+    ;;
+esac

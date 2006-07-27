@@ -1,0 +1,18 @@
+#!/usr/bin/python
+
+import sys
+import os, os.path
+if not os.environ.has_key('ENV_HARNESS'):
+  envh= os.path.dirname(sys.argv[0]) + '/../envharness'
+  os.execv(envh, [envh] + sys.argv)
+
+import YDB, GaleDB, Gale
+from InstallSettings import settings
+
+def renamething():
+  curs= YDB.getCursor()
+  rs= GaleDB.executeQuery(curs, 'UPDATE userprefs_t ' +\
+    'SET pkey = "send.geometry" WHERE pkey = "send.rows"', {})
+  YDB.close(curs)
+
+renamething()

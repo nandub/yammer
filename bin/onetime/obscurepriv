@@ -1,0 +1,30 @@
+#!/usr/bin/python
+
+import sys
+import os, os.path
+if not os.environ.has_key('ENV_HARNESS'):
+  envh= os.path.dirname(sys.argv[0]) + '/../envharness'
+  os.execv(envh, [envh] + sys.argv)
+
+import YDB, GaleDB, Gale
+from InstallSettings import settings
+
+# SELECT puffid, body FROM puffs_t WHERE encrypted = 1
+def obscureAllPrivateMessagesAtOnce(f):
+  curs= YDB.getCursor()
+  rs= GaleDB.executeQuery(curs, 'SELECT puffid, body FROM '
+    'puffs_t WHERE encrypted = 1', {})
+  for id, body in rs:
+    if f:
+      print 'fixing x7f damage'
+      if body is not None:
+        body= body.replace('x7f', chr(127))
+    else:
+      print 'obscuring: ' + str(id)
+      if body is not None:
+        body= Gale.obscureString(body)
+    GaleDB.executeQuery(curs, 'UPDATE puffs_t '
+      'SET body = %(body)s WHERE puffid = %(id)s', locals())
+  YDB.close(curs)
+
+obscureAllPrivateMessagesAtOnce(0)

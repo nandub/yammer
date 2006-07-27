@@ -1,0 +1,95 @@
+body {
+	color: #f0f0f0;
+	background: #484338;
+}
+
+table {
+	color: #f0f0f0;
+	background: #484338;
+}
+
+.puffview,.tablet {
+	color: #f0f0f0;
+	background: #72674E;
+	border-spacing: 4px 4px;
+}
+
+a {
+	color: #f0f0f0;
+}
+
+a:link {
+	color: #f0f0f0;
+}
+
+a:visited {
+	color: #f0f0f0;
+}
+
+a:hover {
+	color: #E8DAB8;
+}
+
+hr {
+	color: #72674E;
+	background-color: #72674E;
+}
+
+.menubottom {
+  border-top: 2px solid #72674E;
+}
+
+.error {
+	color: #ffffff;
+}
+
+.notice {
+	color: #E8DAB8;
+}
+
+.darkrow {
+	background-color: #393427;
+}
+
+.lightrow {
+	background-color: #4C4534;
+}
+
+.header {
+	color: #B2A78E;
+	border-bottom: solid 1px #72674E;
+}
+
+.header a {
+	color: #E8DAB8;
+}
+
+.header a:link {
+	color: #E8DAB8;
+}
+
+.header a:visited {
+	color: #E8DAB8;
+}
+
+.header a:hover {
+	color: #E8DAB8;
+}
+
+.prefHeading {
+	color: #E8DAB8;
+}
+
+/* begin: wes's new private message stuff (8-28-03)*/
+.private .puff {
+	border: solid 2px #E8DAB8;
+}
+
+.private .thumb {
+	border: solid 2px #E8DAB8;
+}
+/* end: wes's new private message stuff (8-28-03)*/
+
+.killed .header, .killed .header a, .killed {
+  color: black
+}

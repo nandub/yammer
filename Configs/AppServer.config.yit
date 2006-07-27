@@ -1,0 +1,13 @@
+# $Revision: 1.2 $
+{
+	'PrintConfigAtStartUp': 1,
+	'Verbose':              1,
+	'Host':                 '127.0.0.1',
+	'Port':                 %(webwarePort)s,
+	'PlugIns':              [],
+	'PlugInDirs':           ['%%(WebwarePath)s'],
+	'StartServerThreads':   10,
+	'MaxServerThreads':     20,
+	'MinServerThreads':     5,
+	'CheckInterval':        100,
+}

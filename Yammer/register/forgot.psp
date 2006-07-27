@@ -1,0 +1,144 @@
+<%@ page extends="YammerPage" %>
+<%@ page method="writeContent" %>
+<%@ page imports="UserPrefs,InstallSettings:settings,WebUtils.Funcs" %>
+<%@ page imports="string,UserUtilities:*" %>
+
+<%
+# Copyright 2002, 2004 John T. Reese.
+# email: jtr at ofb.net
+# 
+# This file is part of Yammer.
+# 
+# Yammer is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# Yammer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with Yammer; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%>
+
+
+<%if self.internalUserStore:%>
+
+<%if self.noEmail is not None:%>
+<div class="error">
+This user's password cannot be reset and sent in email, because
+he or she does not have an email address on file.
+</div>
+<p>
+Please fill in the following information.  It will be emailed to the
+site administrator, who will do something about it and email you to
+explain.
+
+<form method="post">
+  <table>
+    <tr>
+      <td align="right">Username:</td>
+      <td>
+<%self.self.writeUsernameInputs()%>
+      </td>
+    </tr>
+    <tr>
+      <td align="right">Preferred email address:</td>
+      <td><input name="email"></td>
+    </tr>
+    <tr>
+      <td align="right" valign="top">Additional information:</td>
+      <td><textarea name="info"></textarea></td>
+    </tr>
+    <tr>
+      <td colspan="2" align="right">
+        <input type="submit" name="_action_" value="email admin">
+      </td>
+    </tr>
+  </table>
+</form>
+</div>
+<% end %>
+<%else:%>
+
+<%
+username= self.getUsername()
+%>
+
+
+<p>
+If you've forgotten your password,
+<%if username is None:%>
+  enter your username and
+<%end%>
+click the button below.  A new random password will be generated for
+you and emailed to you.
+</p>
+
+<p>
+<form method="post">
+  Username:
+    <%if username is not None:%>
+      <input type="hidden" name="username"
+        value="<%= username %>">
+        <b><%= username %></b>
+    <% end %>
+    <%else:%>
+      <%self.writeUsernameInputs()%>
+    <% end %>
+    &nbsp; &nbsp;
+    <input type="hidden" name="_action_" value="forgot password">
+    <input type="submit" value="reset password">
+</form>
+
+<% end %>
+<% end %>
+
+
+<psp:method name="awake" params="trans">
+YammerPage.YammerPage.awake(self, trans)
+if not self.internalUserStore:
+  self.errorMessage= 'This operation is not supported in an LDAP ' + \
+    'environment.  If you feel you have received this message in ' + \
+    'error, please contact your administrator.'
+self.noEmail= None
+</psp:method>
+
+<psp:method name="actions">
+    return YammerPage.YammerPage.actions(self) + \
+      ['forgot password', 'email admin']
+</psp:method>
+
+<psp:method name="actionForgotPassword" params="trans">
+    username= self.getUsername()
+    req= self._request
+    if username is None and req.hasField('username') and \
+        req.hasField('domain'):
+      username= req.field('username') + '@' + req.field('domain')
+    if username is not None:
+      try:
+        self.errorMessage= forgotPassword(username)
+        if self.errorMessage is None:
+          self.noticeMessage= 'Password reset and emailed.'
+      except 'noEmail':
+        self.noEmail= 1
+    self.redirect(self.hostRoot())
+</psp:method>
+
+<psp:method name="actionEmailAdmin" params="trans">
+  req= self._request
+  fields= 'username domain email info'.split()
+  if len([x for x in fields if not req.hasField(x)]) == 0:
+    body= string.join(['%s:\n%s\n\n' % (x, req.field(x)) for x in fields], '')
+    self.debugMessage(body)
+    subject= 'user forgot password on ' + settings['siteName']
+    self.errorMessage= \
+      sendEmail(settings['maintEmail'], settings['maintEmail'],
+        subject, body)
+    if self.errorMessage is None:
+      self.noticeMessage= 'Message sent to administrator.'
+  self.writeHTML()
+</psp:method>

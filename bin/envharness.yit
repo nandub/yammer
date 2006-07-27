@@ -1,0 +1,14 @@
+#!/bin/sh
+# $Revision: 1.10 $
+
+YAMMER_ROOT=%(yammerRoot)s
+
+ENV_HARNESS=true
+PYGALE_DIR=$YAMMER_ROOT/Configs
+# python environment
+PYTHONPATH=$YAMMER_ROOT/external/Webware/WebKit:$YAMMER_ROOT/lib:\
+$YAMMER_ROOT/external/site-packages:$YAMMER_ROOT/external/Webware
+PATH=%(pythonBin)s:$YAMMER_ROOT/bin:$PATH
+export PYTHONPATH PATH YAMMER_ROOT ENV_HARNESS PYGALE_DIR
+
+exec "$@"

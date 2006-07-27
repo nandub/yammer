@@ -1,0 +1,138 @@
+<%@ page extends="YammerPage" %>
+<%@ page method="writeContent" %>
+<%@ page imports="sys,UserPrefs,InstallSettings:settings,UserUtilities:*" %>
+
+<%
+# Copyright 2002, 2004 John T. Reese.
+# email: jtr at ofb.net
+# 
+# This file is part of Yammer.
+# 
+# Yammer is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# Yammer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with Yammer; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%>
+
+
+
+
+<%if self.internalUserStore:%>
+
+<%if not self.registered:%>
+  <p>
+  To create an account, just enter a username and email address.  A
+  random password will be generated for you and emailed to the email
+  address.
+  </p>
+  <form method="post">
+    <table align="center">
+
+      <tr>
+        <td align="right"><b>username</b></td>
+        <td>
+<%self.writeUsernameInputs()%>
+        </td>
+      </tr>
+
+      <tr>
+        <td align="right"><b>email address</b></td>
+        <td><input name="email"></td>
+      </tr>
+
+      <tr>
+        <td colspan="2" align="center">
+          <input name="_action_" type="hidden" value="emregister">
+          <input type="submit" value="register">
+        </td>
+      </tr>
+
+    </table>
+
+  </form>
+
+<!-- Google Conversion Code -->
+<script language="JavaScript">
+<!--
+google_conversion_id = 1071419820;
+google_conversion_language = "en_US";
+if (1.0) {
+  google_conversion_value = 1.0;
+}
+google_conversion_label = "PageView";
+-->
+</script>
+<script language="JavaScript"
+src="http://www.googleadservices.com/pagead/conversion.js">
+</script>
+<noscript>
+<a href="http://services.google.com/sitestats/en_US.html" target=_blank>
+<img height=27 width=135
+src="http://www.googleadservices.com/pagead/conversion/1071419820/?value=1.0&lab
+el=PageView&hl=en">
+</a>
+</noscript>                
+
+<% end %>
+<%else:%>
+  Thank you for registering.  A password has been generated and
+  emailed to you.  After logging in, you should change your password
+  to something you can remember.
+<% end %>
+
+<% end %>
+
+<psp:method name="awake" params="trans">
+YammerPage.YammerPage.awake(self, trans)
+if not self.internalUserStore:
+  self.errorMessage= 'This operation is not supported in an LDAP ' + \
+    'environment.  If you feel you have received this message in ' + \
+    'error, please contact your administrator.'
+self.registered= 0
+</psp:method>
+
+
+<psp:method name="actions">
+  return YammerPage.YammerPage.actions(self) + ['emregister']
+</psp:method>
+
+<psp:method name="actionEmregister" params="trans">
+  req= self._request
+  if req.hasField('username') and req.hasField('domain') \
+      and req.hasField('email'):
+    self.errorMessage= self.handleEmregisterPost()
+    print "created user: %(username)s, %(domain)s, %(email)s" % \
+      req.fields()
+    print self.errorMessage
+    sys.stdout.flush()
+    if not self.errorMessage:
+      self.registered= 1
+  self.writeHTML()
+</psp:method>
+
+<psp:method name="handleEmregisterPost">
+  req= self._request
+  res= self._response
+  if req.hasField('username') and req.hasField('domain') \
+      and req.hasField('email'):
+    email= req.field('email')
+    username= req.field('username')
+    domain= req.field('domain')
+    return createUser(username + '@' + domain, email)
+</psp:method>
+
+<psp:method name="writeHTML">
+  if self.getUsername() is not None:
+    self.redirect(self.hostRoot())
+  else:
+    YammerPage.YammerPage.writeHTML(self)
+</psp:method>

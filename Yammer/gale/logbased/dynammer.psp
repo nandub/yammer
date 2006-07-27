@@ -1,0 +1,105 @@
+<%@ page extends="GaleClientYammerPage" %>
+<%@ page method="writeContent" %>
+<%@ page imports="string,YDB,GaleDB,InstallSettings:settings,time" %> 
+
+<%
+# Copyright 2002, 2004 John T. Reese.
+# email: jtr at ofb.net
+# 
+# This file is part of Yammer.
+# 
+# Yammer is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# Yammer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with Yammer; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%>
+
+
+  <script type="text/javascript">
+    function blitSub(loc) {
+      document.resubform1.subs.value= loc;
+    };
+    function resub() {
+      document.resubform1.stage.value= '0';
+      document.resubform1.submit();
+    };
+    function blitLocation(to) {
+      document.postform.locations.value= to;
+      showCompose();
+    };
+    function blitSender(to) {
+      blitLocation(to);
+    };
+    function showCompose() {
+      show('postFormBlock');
+      var l= document.getElementById('locations');
+      if (!l.value || l.value == '') {
+        l.focus();
+        l.select();
+      } else {
+        var m= document.getElementById('message');
+        m.focus();
+        m.select();
+      }
+    }
+    function show(id) {
+      var e= document.getElementById(id);
+      var eh= document.getElementById(id + "-hidden");
+      e.style.display= '';
+      eh.style.display= 'none';
+    }
+    function hide(id) {
+      var e= document.getElementById(id);
+      var eh= document.getElementById(id + "-hidden");
+      e.style.display= 'none';
+      eh.style.display= '';
+    }
+
+  </script>
+
+<div id="postFormBlock" style="display: none">
+  <p><a href="javascript:hide('postFormBlock')">[-] hide compose box</a>
+  </p>
+<%
+subs= ''
+if hasattr(self, 'subs'):
+  subs= '?subs=' + self.urlEncode(string.join(self.subs, ' '))
+self.writePostForm()
+%>
+<hr>
+</div>
+<p id="postFormBlock-hidden">
+  <a href="javascript:showCompose()">[+] compose new message</a>
+</p>
+
+<%
+self.displayPrivateCheckForm()
+self.writeFullLogTable()
+%>
+
+
+<%if self.error is not None:%>
+<script type="text/javascript">
+  showCompose();
+</script>
+<% end %>
+
+<%if self.index == 0:%>
+<p id="engine-frame-hidden">
+  <a href="javascript:show('engine-frame')">debug frame</a>
+</p>
+<div id="engine-frame" style="display: none">
+  <hr>
+  <iframe src="dynammer-engine.psp<%= subs %>">
+</div>
+<% end %>
+

@@ -1,0 +1,9 @@
+#!/usr/bin/env python
+
+from pygale import setup
+
+if __name__ == '__main__':
+	try:
+		setup.run_setup()
+	except KeyboardInterrupt:
+		print 'PyGale configuration interrupted'

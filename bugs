@@ -1,0 +1,264 @@
+(please click *Edit* and enter a brief description of what you were doing, here)
+url:
+http://yammer.net:1111/logs/?location=pub.web.orkut&datestart=2004-02-23+14%3A09%3A41&dateend=&submit=Search
+when not logged in
+
+====
+Traceback:
+
+_/home/yammer/yammer.net/webroot/logs/index.psp_
+
+Traceback (most recent call last):
+
+File "./WebKit/Application.py", line 415, in dispatchRequest
+
+    self.handleGoodURL(transaction)
+
+File "./WebKit/Application.py", line 567, in handleGoodURL
+
+    self.respond(transaction)
+
+File "./WebKit/Application.py", line 776, in respond
+
+    transaction.respond()
+
+File "./WebKit/Transaction.py", line 105, in respond
+
+    self._servlet.respond(self)
+
+File "./WebKit/HTTPServlet.py", line 38, in respond
+
+    method(trans)
+
+File "./WebKit/Page.py", line 34, in respondToGet
+
+    self._respond(transaction)
+
+File "./WebKit/Page.py", line 73, in _respond
+
+    self.writeHTML()
+
+File "/home/yammer/yammer.net/lib/YammerPage.py", line 603, in writeHTML
+
+    Page.writeHTML(self)
+
+File "./WebKit/Page.py", line 135, in writeHTML
+
+    self.writeBody()
+
+File "/home/yammer/yammer.net/lib/YammerPage.py", line 169, in writeBody
+
+    self.writeContent()
+
+File "/home/yammer/yammer.net/external/Webware/WebKit/Cache/PSP/_home_yammer_yammer_net_webroot_logs_index_psp.py", line 245, in writeContent
+
+    self.writeLogTable()
+
+File "/home/yammer/yammer.net/lib/GaleClientYammerPage.py", line 81, in writeLogTable
+
+    self.puffcallback(puffbatch[i], rcg)
+
+File "/home/yammer/yammer.net/lib/GaleClientYammerPage.py", line 180, in puffcallback
+
+    self._response.write(self.thumbCell(signature))
+
+File "/home/yammer/yammer.net/lib/GaleClientYammerPage.py", line 208, in thumbCell
+
+    s= self.u['thumbnail.shrink']
+
+File "/home/yammer/yammer.net/lib/UserPrefs.py", line 191, in __getitem__
+
+    if self.transaction.hasSession():
+():
+
+File "./WebKit/Transaction.py", line 62, in hasSession
+
+    return self._session is not None
+
+AttributeError: Transaction instance has no attribute '_session'
+
+
+
+====
+
+MiscInfo
+
+'filename':/home/yammer/yammer.net/webroot/logs/index.psp
+
+'os.getcwd()':/home/yammer/yammer.net/external/Webware
+
+'sys.path':['', '/home/yammer/yammer.net/lib', '/home/yammer/yammer.net/external/site-packages', '/home/yammer/yammer.net/external/Webware', '/usr/lib/python2.1', '/usr/lib/python2.1/plat-linux2', '/usr/lib/python2.1/lib-tk', '/usr/lib/python2.1/lib-dynload', '/usr/local/lib/python2.1/site-packages', '/usr/lib/python2.1/site-packages', '/usr/lib/python2.1/site-packages/Bobo', '/usr/lib/python2.1/site-packages/HTMLgen', '/usr/lib/python2.1/site-packages/Numeric', '/usr/lib/python2.1/site-packages/PIL', '/usr/lib/python2.1/site-packages/gadfly', '/usr/lib/site-python', '/home/yammer/yammer.net/external/Webware/WebKit/Cache/PSP']
+
+'time':Tue Feb 24 12:52:50 2004
+
+
+
+====
+
+Transaction
+
+keys: attr value
+
+{application} {<WebKit.Application.Application instance at 0x811d7dc>} 
+
+{request} {<WebKit.HTTPRequest.HTTPRequest instance at 0x83ffcd4>} 
+
+{response} {<WebKit.HTTPResponse.HTTPResponse instance at 0x83bcbac>} 
+
+{session} {None} 
+
+{servlet} {{quote: <Yammer.logs._home_yammer_yammer_net_webroot_logs_i._home_yammer_yammer_net_webroot_logs_index_psp instance at 0x8415474>}} 
+
+
+
+====
+
+HTTPRequest
+
+keys: attr value
+
+{args} {{}} 
+
+{uri} {'/logs/?location=pub.web.orkut&datestart=2004-02-23+14%3A09%3A41&dateend=&submit=Search'} 
+
+{servletPath} {'/WK'} 
+
+{serverSidePath} {'/home/yammer/yammer.net/webroot/logs/index.psp'} 
+
+{pathInfo} {None} 
+
+{pathTranslated} {'/home/yammer/yammer.net/webroot/WK/Yammer//Yammer//logs/index.psp'} 
+
+{queryString} {'location=pub.web.orkut&datestart=2004-02-23+14%3A09%3A41&dateend=&submit=Search'} 
+
+{method} {'GET'} 
+
+{sessionId} {None} 
+
+{parents} {[]} 
+
+{fields} {{'submit': 'Search', 'location': 'pub.web.orkut', 'dateend': '', 'datestart': '2004-02-23 14:09:41'}} 
+
+{cookies} {{}} 
+
+{environ} {{{quote: 'DOCUMENT_ROOT'}: '/home/yammer/yammer.net/webroot', {quote: 'SERVER_ADDR'}: '205.217.153.34', {quote: 'HTTP_ACCEPT_ENCODING'}: 'gzip,deflate', {quote: 'GATEWAY_INTERFACE'}: 'CGI/1.1', {quote: 'SERVER_PORT'}: '1111', {quote: 'PATH_TRANSLATED'}: '/home/yammer/yammer.net/webroot/WK/Yammer//Yammer//logs/index.psp', {quote: 'REMOTE_ADDR'}: '204.50.198.254', {quote: 'SERVER_SOFTWARE'}: {quote: 'Apache/1.3.29 (Unix) mod_ssl/2.8.16 OpenSSL/0.9.6c mod_webkit/0.5'}, {quote: 'HTTP_VIA'}: '1.1 inet-nc06 (NetCache NetApp/5.3.1R3)', {quote: 'HTTP_ACCEPT_LANGUAGE'}: 'en-us,en;q=0.5', {quote: 'HTTP_X_FORWARDED_FOR'}: '130.35.68.93', {quote: 'REMOTE_PORT'}: '12542', {quote: 'SERVER_NAME'}: 'yammer.net', {quote: 'HTTP_CONNECTION'}: 'keep-alive', {quote: 'HTTP_USER_AGENT'}: 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.7a) Gecko/20040125 Firebird/0.8.0+', {quote: 'HTTP_ACCEPT_CHARSET'}: {quote: 'ISO-8859-1,utf-8;q=0.7,*;q=0.7'}, {quote: 'HTTP_ACCEPT'}: {quote: 'text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,image/jpeg,image/gif;q=0.2,*/*;q=0.1'}, {quote: 'REQUEST_URI'}: '/logs/?location=pub.web.orkut&datestart=2004-02-23+14%3A09%3A41&dateend=&submit=Search', 'PATH': '/home/yammer/yammer.net/bin:/ofb/bin:/home/yammer/bin:/ofb/bin:/ofb/sbin:/usr/local/bin:/usr/bin:/bin:/usr/bin/X11:/usr/games:/usr/X11R6/bin', {quote: 'QUERY_STRING'}: 'location=pub.web.orkut&datestart=2004-02-23+14%3A09%3A41&dateend=&submit=Search', {quote: 'SERVER_PROTOCOL'}: 'HTTP/1.1', {quote: 'SCRIPT_URL'}: '/logs/', {quote: 'HTTP_HOST'}: 'yammer.net:1111', {quote: 'REQUEST_METHOD'}: 'GET', {quote: 'SERVER_SIGNATURE'}: '', {quote: 'SCRIPT_URI'}: 'http://yammer.net:1111/logs/', {quote: 'SCRIPT_NAME'}: '/WK', {quote: 'SERVER_ADMIN'}: 'webmaster@yammer.net', {quote: 'SCRIPT_FILENAME'}: '/home/yammer/yammer.net/webroot/WK', {quote: 'PATH_INFO'}: '/Yammer//logs/index.psp'}} 
+
+
+
+====
+
+HTTPResponse
+
+keys: attr value
+
+{args} {{}} 
+
+{endTime} {1077655970.3664701} 
+
+{committed} {0} 
+
+{headers} {{'content-type': 'text/html'}} 
+
+{cookies} {{}} 
+
+
+
+====
+
+ logs
+
+object fields:
+
+{quote: '_actionDict'}:{'show menubar': 1, 'clear mobile mode': 1, 'mobile mode': 1, 'kf on': 1, 'log out': 1, 'confirm private': 1, 'log in': 1, 'hide menubar': 1, 'post message': 1, 'kf off': 1}
+
+{quote: '_methodForRequestType'}:{'GET': <method Page.respondToGet of _home_yammer_yammer_net_webroot_logs_index_psp instance at 0x8415474>, 'POST': <method Page.respondToPost of _home_yammer_yammer_net_webroot_logs_index_psp instance at 0x8415474>}
+
+{quote: '_request'}:<WebKit.HTTPRequest.HTTPRequest instance at 0x83ffcd4>
+
+{quote: '_response'}:<WebKit.HTTPResponse.HTTPResponse instance at 0x83bcbac>
+
+{quote: '_serverSidePath'}:None
+
+{quote: '_session'}:None
+
+{quote: '_transaction'}:<Transaction application=<WebKit.Application.Application instance at 0x811d7dc> request=<WebKit.HTTPRequest.HTTPRequest instance at 0x83ffcd4> response=<WebKit.HTTPResponse.HTTPResponse instance at 0x83bcbac> session=None servlet=<Yammer.logs._home_yammer_yammer_net_webroot_logs_i._home_yammer_yammer_net_webroot_logs_index_psp instance at 0x8415474> errorOccurred=1>
+
+{quote: '_wroteHeading'}:1
+
+'errorMessage':None
+
+'internalUserStore':1
+
+'loginError':None
+
+'mobilesettings':{'mobile.mode': 'yes', 'thumbnail.shrink': 'none', 'front.page': '/gale/logbased/consolidated.psp', 'resub.bar': 'bottom', 'show.menubar': 'no', 'do.autorefresh': 'no'}
+
+'noticeMessage':None
+
+'qkeys':['location', 'datestart']
+
+'segURLs':{}
+
+'u':<UserPrefs.UserPrefs instance at 0x83a6e6c>
+
+
+
+====
+
+Environment
+
+'CVSROOT':/ofb/cvs
+
+{quote: 'ENV_HARNESS'}:true
+
+'HOME':/home/yammer
+
+'LOGNAME':yammer
+
+'MAIL':/var/mail/yammer
+
+'PATH':/home/yammer/yammer.net/bin:/ofb/bin:/home/yammer/bin:/ofb/bin:/ofb/sbin:/usr/local/bin:/usr/bin:/bin:/usr/bin/X11:/usr/games:/usr/X11R6/bin
+
+'PWD':/home/yammer/yammer.net/external/Webware/WebKit
+
+{quote: 'PYGALE_DIR'}:/home/yammer/yammer.net/conf
+
+'PYTHONPATH':/home/yammer/yammer.net/external/Webware/WebKit:/home/yammer/yammer.net/lib:/home/yammer/yammer.net/external/site-packages:/home/yammer/yammer.net/external/Webware
+
+'SHELL':/usr/bin/zsh
+
+'SHLVL':5
+
+{quote: 'SSH_CLIENT'}:127.0.0.1 38017 22
+
+{quote: 'SSH_TTY'}:/dev/pts/2
+
+'TERM':vt100
+
+'USER':yammer
+
+{quote: 'YAMMER_ROOT'}:/home/yammer/yammer.net
+
+{quote: '_'}:/usr/bin/env
+
+
+
+====
+
+Ids
+
+keys: name value
+
+{getegid} {100} 
+
+{geteuid} {30011} 
+
+{getgid} {100} 
+
+{getpgrp} {24013} 
+
+{getpid} {24026} 
+
+{getppid} {24023} 
+
+{getuid} {30011
