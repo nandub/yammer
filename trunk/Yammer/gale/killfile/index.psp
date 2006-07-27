@@ -1,0 +1,248 @@
+<%@ page extends="GaleClientYammerPage,AuthYammerPage" %>
+<%@ page imports="string,SiteHTML,GaleDB,re" %>
+<%@ page method="writeContent" %>
+
+<%
+# Copyright 2002, 2004 John T. Reese.
+# email: jtr at ofb.net
+# 
+# This file is part of Yammer.
+# 
+# Yammer is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# Yammer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with Yammer; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%>
+
+
+
+<%
+u= self.getUserPrefs()
+if req.hasField('subs'):
+  self.subs= req.field('subs')
+else:
+  self.subs= u['subs.quick'].split(':')[0]
+self.subs= self.subs.split()
+self.index= 0
+self.logRows= self.u.getPrefLimit('logpager.puffcount', 1, 50)
+%>
+
+<script type="text/javascript">
+
+  function blitLocation(to) {
+    addEntry("loc", to);
+  }
+  function blitSender(from) {
+    addEntry("user", from);
+  }
+</script>
+
+<h1>Killfile Manager</h1>
+
+  <script type="text/javascript">
+    function addEntry(t,o) {
+      f= document.forms["kfmform"];
+      f.reset();
+      f.killtype.value= t;
+      f.killoperand.value= o;
+      f._action_.value= "add entry";
+      f.submit();
+    }
+  </script>
+
+<%if req.hasField('post'):%>
+  <script type="text/javascript">
+    parent.log.resub();
+  </script>
+<% end %>
+
+
+<p>
+
+<a href="<%= self.hostRoot() %>">Done?</a>
+</p>
+
+<form name="kfmform" method="post"
+  action="<%= self.getStrippedUri() %>">
+
+  <input type="hidden" name="subs" value="<%= string.join(self.subs) %>">
+
+<%
+rcg= SiteHTML.rowClassGenerator()
+%>
+<table class="tablet">
+
+  <tr class="<%= rcg.next() %>">
+
+    <td>
+      <select name="killtype">
+        <option value="loc">loc</option>
+        <option value="user">user</option>
+      </select>
+    </td>
+
+    <td>
+      <input type="text" name="killoperand">
+      <input type="submit" name="_action_" value="add entry">
+    </td>
+
+<%if len(self.killfile) == 0:%>
+    <td>&nbsp;</td>
+<% end %>
+<%else:%>
+    <td><b>remove</b></td>
+<% end %>
+
+  </tr>
+
+<%
+i=1
+for kfe in self.killfile:%>
+
+  <tr class="<%= rcg.next() %>">
+    <td><%= kfe[0] %></td>
+    <td><%= kfe[1] %></td>
+    <td><input type="checkbox" name="row<%= i %>"></td>
+  </tr>
+
+<%i+=1%>
+<% end %>
+
+
+<%if len(self.killfile) > 0:%>
+  <tr class="<%= rcg.next() %>">
+    <td align="right" colspan="3">
+      <input type="submit" name="_action_" value="remove checked entries">
+    </td>
+  </tr>
+<% end %>
+
+</table>
+
+<b>Warning: killfiling users currently has a performance penalty.
+Rest assured that the site author loves killfiling users and will do
+everything in his power to improve the performance.</b>
+
+<hr>
+
+<h2>Killfile builder</h2>
+<p>
+
+Entries affected by the killfile will be marked with a special icon.  To
+killfile a user, click on his or her username in the <b>From:</b>; to
+killfile a location, click on the location in the <b>To:</b> line.
+
+</p>
+
+<%
+self.writeLogTable()
+%>
+
+
+<psp:method name="awake" params="trans">
+GaleClientYammerPage.GaleClientYammerPage.awake(self, trans)
+if self.getUsername() is not None:
+  self.killfile= self.u['killfile.contents'].strip()
+  if len(self.killfile) > 0:
+    self.killfile= [kfe.split('=') for kfe in self.killfile.split(';')]
+  else:
+    self.killfile= []
+</psp:method>
+
+
+<psp:method name="actions">
+  a= AuthYammerPage.AuthYammerPage.actions(self)
+  if self.getUsername() is not None:
+    a += ['add entry', 'remove checked entries']
+  return a
+</psp:method>
+
+<psp:method name="actionAddEntry" params="trans">
+  killtype= trans.request().field('killtype')
+  killoperand= trans.request().field('killoperand').strip()
+  ops= killoperand.split()
+  self.killfile= [[killtype, ko] for ko in ops] + self.killfile
+  self.saveKillfile()
+  self.writeHTML()
+</psp:method>
+
+<psp:method name="actionRemoveCheckedEntries" params="trans">
+  fs= trans.request().fields()
+  for row in [f for f in fs.keys() if f.startswith('row')]:
+    rownum= int(row[len('row'):]) - 1
+    del self.killfile[rownum]
+  self.saveKillfile()
+  self.writeHTML()
+</psp:method>
+
+<psp:method name="saveKillfile">
+  self.u['killfile.contents']= \
+    string.join([string.join(e, '=') for e in self.killfile], ';')
+</psp:method>
+
+<psp:method name="puffcallback" params="puff,rcg">
+  puff['killed']= self.isKilled(puff)
+  style= ''
+  if puff['killed']:
+    style= ' killed'
+  GaleClientYammerPage.GaleClientYammerPage.puffcallback(self, puff,
+    rcg, style)
+</psp:method>
+
+<psp:method name="getPuffs">
+  return GaleDB.fetchPuffs(self.subs, self.getGaleId(),
+                               self.index, 4 * self.logRows, [])
+</psp:method>
+
+<psp:method name="isKilled" params="puff">
+  for (t,o) in self.killfile:
+    if t == 'user':
+      if puff['sender'] == o:
+        return 1
+    elif t == 'loc':
+      if o.find('@') > 0:
+        (c,d)= o.split('@', 1)
+        r= "^(%s|%s\.*@%s)$" % (o,c,d)
+      else:
+        r= "^%s$" % o
+      for cat in puff['locations'] + puff['keywords']:
+        if re.match(r, cat):
+          return 1
+  return 0
+</psp:method>
+
+<psp:method name="extraPuffColumn" params="puff">
+  if puff['killed']:
+    cell= """
+      <td align="left" valign="top">
+        <img src="/images/killed.gif">
+        <span class="error">killed</span>
+      </td>
+    """
+  else:
+    cell= """
+      <td align="left" valign="top"></td>
+    """
+  return cell
+</psp:method>
+
+<psp:method name="emitLoc" params="locations, unused">
+  ar= self.getStrippedUri() + '?_action_='
+  return '<a href="' + ar + 'add+entry&killtype=loc&killoperand=%s">' % \
+    locations + locations + '</a>'
+</psp:method>
+
+<psp:method name="userLink" params="user">
+  ar= self.getStrippedUri() + '?_action_='
+  return '<a href="' + ar + 'add+entry&killtype=user&killoperand=%s">' % \
+    user, "</a>"
+</psp:method>

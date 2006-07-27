@@ -1,0 +1,64 @@
+#!/usr/bin/env python
+
+import sys
+import os, os.path
+if not os.environ.has_key('ENV_HARNESS'):
+  envh= os.path.dirname(sys.argv[0]) + '/envharness'
+  os.execv(envh, [envh] + sys.argv)
+
+
+import YDB
+from InstallSettings import settings
+if settings['useDB'] == 'true':
+
+
+  import _mysql
+  try:
+    curs= YDB.getCursor()
+    curs.execute('SELECT * FROM %s.user_t' % settings['dbSchema'])
+    YDB.close(curs)
+  except _mysql.OperationalError, sqlcode:
+    sys.stderr.write('\n')
+    if sqlcode[0] != 1045:
+      sys.stderr.write('sql error #%d: %s\n' % sqlcode.args)
+      sys.stderr.write('If this is not fixed by running the commands ' +
+                       'below, please file a bug.\n\n')
+    sys.stderr.write('Please execute these commands as root in "mysql".\n')
+    print '''
+    CREATE DATABASE %(dbSchema)s;
+    GRANT SELECT, INSERT, UPDATE, DELETE
+      ON %(dbSchema)s.* TO %(dbUser)s@localhost
+      IDENTIFIED BY '%(dbPassword)s';
+    CREATE TABLE %(dbSchema)s.user_t
+        (login VARCHAR(64) NOT NULL,
+         password VARCHAR(32));
+    CREATE TABLE %(dbSchema)s.userprefs_t
+        (login VARCHAR(64) NOT NULL,
+         pkey VARCHAR(32) NOT NULL,
+         pvalue TEXT,
+         PRIMARY KEY (login, pkey));
+    CREATE TABLE %(dbSchema)s.`puffs_t` (
+      `puffid` int(11) NOT NULL auto_increment,
+      `body` text,
+      `sender` text,
+      `from` text,
+      `date` datetime default NULL,
+      `ssdate` datetime default NULL,
+      `encrypted` tinyint(1) default NULL,
+      PRIMARY KEY  (`puffid`),
+      KEY `date_index` (`date`),
+      KEY `sender_index` (`sender`(25)),
+      KEY `ssdate_index` (`ssdate`),
+      FULLTEXT KEY `body_index` (`body`)
+    );
+    CREATE TABLE %(dbSchema)s.`tos_t` (
+      `puffid` int(11) NOT NULL,
+      `cat` text,
+      `islocation` tinyint(1) default NULL,
+      KEY `cat_index` (`cat`(15)),
+      KEY `puffid_index` (`puffid`)
+    );
+    ''' % settings
+    sys.exit(1)
+
+  sys.exit(0)

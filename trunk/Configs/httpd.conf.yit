@@ -1,0 +1,28 @@
+ServerType standalone
+HostnameLookups off
+ServerAdmin %(maintEmail)s
+ServerRoot %(yammerRoot)s/
+LoadModule webkit_module %(yammerRoot)s/external/apache/libexec/mod_webkit.so
+LoadModule ssl_module %(yammerRoot)s/external/apache/libexec/libssl.so
+LoadModule rewrite_module %(yammerRoot)s/external/apache/libexec/mod_rewrite.so
+ErrorLog Logs/error.log
+LogLevel warn
+LogFormat "%%h %%l %%u %%t \"%%r\" %%>s %%b \"%%{Referer}i\" \"%%{User-Agent}i\" %%T %%v" full
+LogFormat "%%h %%l %%u %%t \"%%r\" %%>s %%b \"%%{Referer}i\" \"%%{User-Agent}i\"" combined
+LogFormat "%%h %%l %%u %%t \"%%r\" %%>s %%b" common
+LogFormat "%%{Referer}i -> %%U" referer
+LogFormat "%%{User-agent}i" agent
+CustomLog Logs/access.log full
+PidFile run/apache.pid
+LockFile run/apache.lock
+UseCanonicalName on
+Timeout 300
+KeepAlive On
+MaxKeepAliveRequests 100
+KeepAliveTimeout 15
+MinSpareServers 5
+MaxSpareServers 10
+StartServers 5
+MaxClients 150
+MaxRequestsPerChild 30
+Include Configs/yammer.conf

@@ -1,0 +1,126 @@
+body {
+	font-family:  "Trebuchet MS", "Tahoma", "lucida", sans-serif;
+	font-size:    10pt;
+	font-style:   normal;
+	font-variant: normal;
+	font-weight:  normal;
+	line-height:  normal;
+	text-align: left;
+}
+
+table {
+	border: 0px;
+	margin: 0px;
+	padding: 0px;
+        width: 6.5in;
+        margin-left: auto;
+        margin-right: auto;
+	
+	font-family:  "Trebuchet MS", "Tahoma", "lucida", sans-serif;
+	font-size:    10pt;
+	font-style:   normal;
+	font-variant: normal;
+	font-weight:  normal;
+	line-height:  normal;
+	text-align: left;
+}
+
+.puffsend {
+	border-spacing: 0px 2px;
+}
+
+form {
+	border: 0px;
+	margin: 0px;
+	padding: 0px;
+}
+
+img {
+	border: 0px;
+}
+
+hr {
+	height: 2px;
+	border: none;
+}
+
+blockquote {
+  border: 2px dotted;
+  padding: 0.5em;
+  margin-left: 1em;
+  margin-right: 2em;
+}
+
+a {
+	text-decoration: underline;
+}
+
+a:link {
+	text-decoration: underline;
+}
+
+a:visited {
+	text-decoration: underline;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+.error,.notice {
+        font-weight: bold;
+}
+
+.thumb {
+	vertical-align: top;
+	width: 1px;	/* minimize width */
+	padding: 4px;
+}
+
+.puff {
+	vertical-align:top;
+	padding: 4px 8px 8px 8px;
+}
+
+
+.header {
+	padding-bottom: 2px;	
+	margin-bottom: 8px;
+}
+
+.header a {
+	text-decoration: none;
+}
+
+.header a:link {
+	text-decoration: none;
+}
+
+.header a:visited {
+	text-decoration: none;
+}
+
+.header a:hover {
+	text-decoration: underline;
+}
+
+.location {
+	font-weight: bold;
+}
+
+.fromTime {
+	font-size: 9pt;
+}
+
+.prefHeading {
+	font-weight: bold;
+	text-decoration: none;
+}
+
+img.encrypted {
+        float: right;
+}
+
+
+.body {
+}

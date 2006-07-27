@@ -1,0 +1,120 @@
+<%@ page extends="GaleClientYammerPage" %>
+<%@ page method="writeBody" %>
+<%@ page imports="YDB,GaleDB,InstallSettings:settings,time" %> 
+
+<%
+# Copyright 2002, 2004 John T. Reese.
+# email: jtr at ofb.net
+# 
+# This file is part of Yammer.
+# 
+# Yammer is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# Yammer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with Yammer; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%>
+
+
+
+<body>
+<%
+self.writeNotices()
+dorefresh= 1
+if dorefresh and self.index == 0:%>
+<%
+if self.stage < 3:
+  ref= 30 + 30 * self.stage
+else:
+  ref= 120
+  self.stage= 9
+ref= 30
+res.setHeader('Refresh', str(ref) + ";url=" + self.getStrippedUri() +
+  "?stage=" + str(self.stage + 1))
+%>
+
+
+
+
+
+<%
+self.displayPrivateCheckForm()
+self.writeLogTable()
+%>
+
+<script type="text/javascript">
+  function startsWith(s, p) {
+    return s && s.slice(0, p.length) == p;
+  }
+  function puffidOf(tr) {
+    return parseInt(tr.id.slice("puffid-".length));
+  }
+  function insertNew() {
+    var mother= document.getElementById('logtable');
+    var mypuffs= mother.getElementsByTagName('tr');
+    var father= parent.document.getElementById('logtable');
+    var theirpuffs= father.getElementsByTagName('tr');
+    var max= 0;
+    var maxChild= null;
+    for (var i= 0; i < theirpuffs.length; i++) {
+      var theirtr= theirpuffs[i];
+      if (startsWith(theirtr.id, 'puffid-')) {
+        var puffid= puffidOf(theirtr);
+        max= puffid;
+        maxChild= theirtr;
+        //alert("found maxChild= " + max);
+        break;
+      }
+    }
+    for (var i= 0; i < mypuffs.length; i++) {
+      var mytr= mypuffs[i];
+      if (startsWith(mytr.id, 'puffid-')) {
+        //alert("puffidOf(mytr): " + puffidOf(mytr) + "; > " +
+          //(puffidOf(mytr) > max));
+        if (puffidOf(mytr) > max) {
+          //alert('inserting puffid=' + puffidOf(mytr) + " before " +
+            //max);
+          var clonedTr= mytr.cloneNode(true);
+          var p= maxChild.parentNode;
+          p.insertBefore(clonedTr, maxChild);
+          //maxChild.parentNode.insertBefore(mytr.cloneNode(true), maxChild);
+        }
+      }
+    }
+  }
+  function deleteOld() {
+    var mother= document.getElementById('logtable');
+    var mypuffs= mother.getElementsByTagName('tr');
+    var father= parent.document.getElementById('logtable');
+    var theirpuffs= father.getElementsByTagName('tr');
+    var min= 0;
+    for (var i= mypuffs.length; i > 0; --i) {
+      var mytr= mypuffs[i-1];
+      if (startsWith(mytr.id, 'puffid-')) {
+        var puffid= puffidOf(mytr);
+        min= puffid;
+        break;
+      }
+    }
+    for (var i= 0; i < theirpuffs.length; i++) {
+      var theirtr= theirpuffs[i];
+      if (theirtr.id && startsWith(theirtr.id, 'puffid-') &&
+          puffidOf(theirtr) < min) {
+        theirtr.parentNode.removeChild(theirtr);
+      }
+    }
+  }
+  insertNew();
+  deleteOld();
+</script>
+</body>
+
+

@@ -1,0 +1,3 @@
+# $Revision: 1.1 $
+GALE_SYS_DIR %(galeSysDir)s
+GALE_DOMAIN %(galeDomains[0])s

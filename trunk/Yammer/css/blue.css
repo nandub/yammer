@@ -1,0 +1,96 @@
+body {
+	color: #e0e0e0;
+	background: #1F2D3B;
+}
+
+table {
+	color: #e0e0e0;
+	background: #1F2D3B;
+}
+
+.puffview,.tablet {
+	color: #e0e0e0;
+	background: #1F2D3B;
+	border-spacing: 0px 8px;
+}
+
+a {
+	color: #e0e0e0;
+}
+
+a:link {
+	color: #e0e0e0;
+}
+
+a:visited {
+	color: #e0e0e0;
+}
+
+a:hover {
+	color: #ffffff;
+}
+
+hr {
+	color: #38546E;
+	background-color: #38546E;
+}
+
+.menubottom {
+  border-top: 2px solid #38546E;
+}
+
+.error {
+	color: #ffff00;
+}
+
+.darkrow {
+	background-color: #2D4459;
+}
+
+.lightrow {
+	background-color: #38546E;
+}
+
+
+.header {
+	color: #94A0AC;
+	border-bottom: solid 1px #1F2D3B
+}
+
+.header a {
+	color: #ACC9E4;
+}
+
+.header a:link {
+	color: #ACC9E4;
+}
+
+.header a:visited {
+	color: #ACC9E4;
+}
+
+.header a:hover {
+	color: #ACC9E4;
+}
+
+.prefHeading {
+	color: #ACC9E4;
+}
+
+/* begin: wes's new private message stuff (8-28-03)*/
+.private .puff {
+	border-top: solid 2px #e0e040;
+	border-bottom: solid 2px #e0e040;
+	border-right: solid 2px #e0e040;
+}
+
+.private .thumb {
+	border-top: solid 2px #e0e040;
+	border-bottom: solid 2px #e0e040;
+	border-left: solid 2px #e0e040;
+}
+/* end: wes's new private message stuff (8-28-03)*/
+
+.killed .header, .killed .header a, .killed {
+  color: black
+}

@@ -1,0 +1,35 @@
+#!/usr/bin/python
+
+import sys
+import os, os.path
+
+
+import time
+
+strformat= '%a %b %d %T %Y'
+num= 0
+if len(sys.argv) > 1:
+  i= 1
+  if sys.argv[1] == '-n':
+    num= 1
+    i= i + 1
+  if len(sys.argv) > i:
+    strformat= sys.argv[i]
+
+tmlist= []
+while 1:
+  line= sys.stdin.readline()
+  if not line: break
+  try:
+    time_t= time.strptime(line, strformat)
+    tmlist.append(time.mktime(time_t))
+  except ValueError:
+    sys.stderr.write("Unable to parse " + `line` + " with format" + \
+      strformat + "\n")
+
+tmlist.sort()
+for tm in tmlist:
+  if num:
+    print int(tm)
+  else:
+    print time.strftime(strformat, time.localtime(tm))

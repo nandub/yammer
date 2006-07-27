@@ -1,0 +1,81 @@
+<%@ page extends="AuthYammerPage" %>
+<%@ page method="writeContent" %>
+<%@ page imports="time,Gale,UserPrefs,KeyStore,SiteHTML" %>
+
+<%
+# Copyright 2002, 2004 John T. Reese.
+# email: jtr at ofb.net
+# 
+# This file is part of Yammer.
+# 
+# Yammer is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# Yammer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with Yammer; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%>
+
+
+
+<%
+users= []
+for user in KeyStore.listPrivateUsers():
+  u= UserPrefs.getInstance(user)
+  t= u['last.activity']
+  if not t or t == '':
+    t= 0
+  else:
+    t= int(t)
+  users.append([t, user, KeyStore.getKeyTime(user),
+                KeyStore.getFullname(user)])
+users.sort(lambda x, y: int(y[0] - x[0]))
+%>
+
+
+
+
+<table>
+
+  <tr>
+    <td><div class="header">last activity</div></td>
+    <td><div class="header">key generated</div></td>
+    <td><div class="header">gale id</div></td>
+    <td><div class="header">name</div></td>
+  </tr>
+
+<%
+rcg= SiteHTML.rowClassGenerator()
+realusers= 1
+for user in users:%>
+<%if user[0] == 0 and realusers:%>
+  <tr><td colspan="3"></td></tr>
+<%realusers= 0%>
+<% end %>
+<tr class="<%= rcg.next() %>">
+    <td valign="top">
+<%if user[0] != 0:%>
+      <%= time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(user[0])) %>
+<% end %>
+    </td>
+    <td valign="top">
+      <%= time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(user[2])) %>
+    </td>
+    <td valign="top">
+      <%= user[1] %>
+    </td>
+    <td valign="top">
+      <%= user[3] %>
+    </td>
+  </tr>
+<% end %>
+
+
+</table>

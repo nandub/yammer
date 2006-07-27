@@ -1,0 +1,103 @@
+<%@ page extends="AuthYammerPage" %>
+<%@ page method="writeContent" %>
+
+<%
+# Copyright 2002, 2004 John T. Reese.
+# email: jtr at ofb.net
+# 
+# This file is part of Yammer.
+# 
+# Yammer is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# Yammer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with Yammer; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%>
+
+
+<%
+from InstallSettings import settings
+import os, Gale, string, KeyStore
+user= self.getUsername()
+privname= os.path.basename(KeyStore.privPath(user))
+pubname= os.path.basename(KeyStore.pubPath(user))
+env= req.environ()
+%>
+
+<h2>Notice!</h2>
+
+This method of downloading your Yammer keys is now deprecated in favor
+of <a href="/guest/marmaduke.psp">Marmaduke</a>.  To save your keys
+locally, you should download a Marmaduke client and tell it to reissue
+your key.  It will ask for your Yammer account password.  This page
+will continue to provide the old functionality for a week or two.
+
+<p>
+
+<h2>Old keypair download instructions</h2>
+<%if not self.isSSLed():%>
+<b>Warning!  Insecure!</b>
+
+You are viewing this page through normal, non-encrypted HTTP.  
+If you choose to download your private key from this page, it may
+be captured by evil hackers running packet sniffers.  Use at your own 
+risk.  You may want to switch to
+<a href="<%=
+'https://%(httpdServerName)s:%(httpdSSLServerPort)s' % settings + \
+env['REQUEST_URI'] %>">the secure page</a>.
+<% end %>
+
+<p>
+You will need to save the files pointed to by these links.  On many
+browsers, you can right-click and select something like <b>Save Target
+As</b>.  Make sure you save the files with the paths shown below.  On
+Windows, you can save the files anywhere; your client (for example,
+WinFugu) should have a configuration option with which you can specify
+the location of the key files.
+
+<p>
+
+
+<dl>
+  <dt>
+    <a href="/WK/Yammer/CatKey?key=pub">public key for <%= user %></a>
+  </dt>
+  <dd>
+    [A]
+    Save as 
+    <%if pubname == privname:%>
+      <b>~/.gale/auth/public/<%= pubname %></b> 
+    <% end %><%else:%>
+      <b>~/.gale/auth/private/<%= pubname %></b>
+    <% end %>
+  </dd>
+  <dt>
+    <a href="/WK/Yammer/CatKey?key=pri">private key for <%= user %></a>
+  </dt>
+  <dd>
+    [B]
+    Save as 
+      <b>~/.gale/auth/private/<%= privname %></b> 
+  </dd>
+</dl>
+
+<p>
+<%
+(u,d)= user.split('@')
+domaincomps= d.split('.')
+monkeydomain= domaincomps[0] + '[1].' + \
+  string.join(domaincomps[1:], '.')
+monkeyfname= u + '@' + monkeydomain
+%>
+<b>Note:</b> some versions of Internet Explorer will modify the name
+of the file in the Save dialog, for example to
+<b><%= monkeyfname %></b>.  Make sure you correct the filename so it is
+exactly as shown above in [A] or [B].

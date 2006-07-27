@@ -1,0 +1,77 @@
+#!/usr/bin/env python
+
+import sys
+import os, os.path
+if not os.environ.has_key('ENV_HARNESS'):
+  envh= os.path.dirname(sys.argv[0]) + '/../bin/envharness'
+  os.execv(envh, [envh] + sys.argv)
+
+from InstallSettings import settings
+sys.path.append(settings['yammerRoot'] + '/test/lib')
+
+import TestSuite
+from TestFailed import TestFailed
+import getpass, os
+
+
+class YammerTest(TestSuite.TestSuite):
+  def __init__(self, username, passwd, root, httproot):
+    self.username= username
+    self.passwd= passwd
+    self.root= root
+    self.httproot= httproot
+    TestSuite.TestSuite.__init__(self, root, httproot)
+
+  def initialUrl(self):
+    return 'http://' + settings['httpdServerName']
+
+  def tLogin(self, page):
+
+    """log in to the site"""
+
+    form= page.getForm('login')
+    user, domain= self.username.split('@')
+    form.setField('username', user)
+    form.setField('domain', domain)
+    form.setField('password', self.passwd)
+    form.setSubmitName('_action_')
+    return form
+
+  def tVerifyFrames(self, page):
+
+    """verify that:
+      we are logged in
+      we have frames
+      the send frame has a post form"""
+
+    content= page.getFrame('content')
+    frames= content.listFrames()
+    if not frames.has_key('log') or not frames.has_key('send'):
+      raise TestFailed('log or send frame missing')
+    log= frames['log']
+    lns= log.getA('^log out$')
+    print 'log forms:'
+    print `log.listForms()`
+    print 'send forms:'
+    print `frames['send'].listForms()`
+    if len(lns) == 0:
+      raise TestFailed('no log out link')
+    if len(lns) > 1:
+      raise TestFailed('too many log out links: %s' % lns)
+    if not frames['send'].listForms().has_key('postform'):
+      raise TestFailed('no postform in send frame')
+    return lns[0]
+
+  def testFunctions(self):
+    return [self.tLogin, self.tVerifyFrames]
+
+
+username= 'jtr@dev.yammer.net'
+passwd= getpass.getpass('password for ' + username + ': ')
+root= '%(yammerRoot)s/webroot/test/' % settings
+httpRoot= 'https://%(httpdServerName)s:%(httpdSSLServerPort)s/test/' % \
+  settings
+os.system('rm -rf ' + root)
+os.mkdir(root)
+yt= YammerTest(username, passwd, root, httpRoot)
+yt.runTests()

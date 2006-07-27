@@ -1,0 +1,166 @@
+<%@ page extends="YammerPage" %>
+<%@ page method="writeContent" %>
+<%@ page imports="InstallSettings:settings,MarmadukeServer,string" %>
+
+<%
+# Copyright 2002, 2004 John T. Reese.
+# email: jtr at ofb.net
+# 
+# This file is part of Yammer.
+# 
+# Yammer is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# Yammer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with Yammer; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%>
+
+
+
+<%
+galeDomain= settings['galeDomains'].split()[0]
+%>
+
+<h1>Marmaduke</h1>
+
+Marmaduke is a client-server system that lets you download and
+generate gale keypairs securely.  It is linked to Yammer; when you
+create a Yammer account, you are also creating a Marmaduke account,
+and vice versa.
+
+<p>
+
+<a href="http://wiki.ofb.net/?MarmadukeSpec">Marmaduke design
+documents</a>.
+
+<h2>Download</h2>
+
+<a href="<%= self.hostRoot() + 'WK/Yammer/MdkClientDownload'
+%>">Download Marmaduke client</a>.  The Marmaduke client requires
+version 2.2 or greater of Python.
+
+
+<h2>Examples</h2>
+
+<ol>
+
+<li>
+A Yammer user has installed gsub and gsend on a
+UNIX machine, and would like to use his pre-existing Yammer keys
+rather than get a new domain key signed and deal with the
+complications of key distribution.
+
+<pre>
+(user 'spliktor' downloads mdk, the Marmaduke client)
+
+% <b>mdk get spliktor@<%= galeDomain %></b>
+Password: <i>user enters account password from Yammer</i>
+writing private key to /home/myname/.gale/auth/private/spliktor@dev.yammer.net.gpri
+writing public key to /home/myname/.gale/auth/private/spliktor@dev.yammer.net.gpub
+
+% <b>echo 'GALE_ID spliktor@<%= galeDomain %>' &gt;&gt; ~/.gale/conf</b>
+% <b>echo 'GALE_DOMAIN <%= galeDomain %>' &gt;&gt; ~/.gale/conf</b>
+% <b>gsub</b>
+! 2004-01-11 03:18:50 gsub notice: connected to <%=
+galeDomain %> (1.2.3.4:11512)
+
+</pre>
+
+<p>
+
+<li>
+
+A new gale user installs fugu on her home machine.  That's right,
+"her."  I'm with it.  This user has never used gale before and wants
+to get started as soon as possible.
+
+<pre>
+(user 'myname' downloads mdk, the Marmaduke client)
+
+% mdk
+Available domains: <%= galeDomain %>
+
+
+What username do you want?  Include the domain (example, user@whatever.com)
+<b>myname@<%= galeDomain %></b>
+
+What is your full name?
+<b>My Name</b>
+
+What is your email address?
+<b>myname@hotmail.com</b>
+
+error 111:
+The key myname@<%= galeDomain %> is already taken; please choose another.
+Suggestion: myname1@<%= galeDomain %>
+
+
+What username do you want?  Include the domain (example, user@whatever.com)
+<b>myname1@<%= galeDomain %></b>
+
+What is your full name?
+<b>My Name</b>
+
+What is your email address?
+<b>myname@hotmail.com</b>
+
+writing private key to /home/myname/.gale/auth/private/myname@dev.yammer.net.gpri
+writing public key to /home/myname/.gale/auth/private/myname@dev.yammer.net.gpub
+
+Key generated.  Watch your mailbox for an account password;
+this will be needed if you want to reissue or revoke
+your key, and can also be used to log in to the appropriate instance
+of Yammer.
+
+</pre>
+
+</ol>
+
+<hr>
+
+<h2>Implementation details</h2>
+
+The Marmaduke client and server communicate using 
+<a href="http://www.xmlrpc.com/spec">XML-RPC</a> over SSL.  The
+command interface is simple and should be easy to implement in other
+languages.  The Python client is a straightforward example.
+Integrating a Marmaduke client into standalone gale clients such as
+ginsu and fugu would allow users to download a single program and
+start using gale almost immediately.
+
+<h3>API</h3>
+
+
+
+
+<dl>
+<%
+m= MarmadukeServer.MarmadukeServer()
+for method in m.exposedMethods():%>
+
+<%
+meth= getattr(m, method)
+doc= meth.__doc__
+co= meth.im_func.func_code
+args= co.co_varnames[1:co.co_argcount]
+%>
+
+<dt><b><%= co.co_name %>(<%= string.join(args, ', ') %>)</b></dt>
+<dd><%= doc %></dd>
+
+<% end %>
+</dl>
+
+<%
+doc= m.__doc__
+if doc is not None:%>
+<%doc= doc.replace('\n', '<br>')%>
+<%= doc %>

@@ -1,0 +1,124 @@
+# $Revision: 1.1 $
+# yammer.net HTTP server (Apache) configuration.
+# Server configuration --------------------------------------------------------
+# ServerRoot /home/httpd
+TypesConfig Configs/mime.types
+ServerAdmin %(maintEmail)s
+ServerName %(httpdServerName)s
+Port %(httpdServerPort)s
+Listen %(httpdServerPort)s
+Listen %(httpdSSLServerPort)s
+#HostnameLookups on
+IndexOptions FancyIndexing
+IndexIgnore .??* *~ *# HEADER* README* RCS CVS *,v *,t
+AddIconByEncoding (CMP,/icons/compressed.gif) x-compress x-gzip
+AddIconByType (TXT,/icons/text.gif) text/*
+AddIconByType (IMG,/icons/image2.gif) image/*
+AddIconByType (SND,/icons/sound2.gif) audio/*
+AddIconByType (VID,/icons/movie.gif) video/*
+AddIcon /icons/binary.gif .bin .exe
+AddIcon /icons/binhex.gif .hqx
+AddIcon /icons/tar.gif .tar
+AddIcon /icons/world2.gif .wrl .wrl.gz .vrml .vrm .iv
+AddIcon /icons/compressed.gif .Z .z .tgz .gz .zip
+AddIcon /icons/a.gif .ps .ai .eps
+AddIcon /icons/layout.gif .html .shtml .htm .pdf
+AddIcon /icons/text.gif .txt
+AddIcon /icons/c.gif .c
+AddIcon /icons/p.gif .pl .py
+AddIcon /icons/f.gif .for
+AddIcon /icons/dvi.gif .dvi
+AddIcon /icons/uuencoded.gif .uu
+AddIcon /icons/script.gif .conf .sh .shar .csh .ksh .tcl
+AddIcon /icons/tex.gif .tex
+AddIcon /icons/bomb.gif core
+AddIcon /icons/back.gif ..
+AddIcon /icons/hand.right.gif README
+AddIcon /icons/folder.gif ^^DIRECTORY^^
+AddIcon /icons/blank.gif ^^BLANKICON^^
+DefaultIcon /icons/unknown.gif
+# Document locations ----------------------------------------------------------
+DocumentRoot %(yammerRoot)s/Yammer
+DirectoryIndex index index.psp
+# ooo.
+UserDir www/data
+# Redirections and aliases
+Alias /icons %(yammerRoot)s/external/apache/icons/
+Alias /favicon.ico %(yammerRoot)s/Yammer/images/favicon.ico
+# MIME types and special handlers
+AddHandler cgi-script .cgi
+AddType text/html .shtml
+AddType text/xml .xml
+AddType application/msword .doc
+AddType text/psp .psp
+AddHandler psp-handler .psp
+AddHandler server-parsed .shtml
+AddHandler send-as-is asis
+AddHandler imap-file map
+AddHandler type-map var
+
+# Access control --------------------------------------------------------------
+<Directory />
+  AllowOverride All
+  order deny,allow
+  allow from all
+  Options Indexes Includes ExecCGI FollowSymLinks MultiViews
+</Directory>
+# servlets
+<Location /WK>
+  SetHandler webkit-handler
+</Location>
+
+NameVirtualHost *
+
+<VirtualHost *>
+  ServerName %(httpdServerName)s
+  RewriteEngine On
+  RewriteRule ^(.*\.psp)$ /WK/Yammer/$1 [L,PT]
+  RewriteRule ^(.*\.py)$ /WK/Yammer/$1 [L,PT]
+  RewriteRule ^(.*)/$ /WK/Yammer/$1/index.psp [L,PT]
+</VirtualHost>
+
+<VirtualHost *>
+  ServerName et.ofb.net
+  ServerAlias et.ofb.net.
+  ServerAlias *.et.ofb.net
+  ServerAlias *.et.ofb.net.
+  DocumentRoot /home/jtr/etymongrel/Etymongrel
+  RewriteEngine On
+  RewriteRule ^(.*\.psp)$ /WK/Etymongrel/$1 [L,PT]
+  RewriteRule ^(.*\.py)$ /WK/Etymongrel/$1 [L,PT]
+  RewriteRule ^(.*)/$ /WK/Etymongrel/$1/index.psp [L,PT]
+</VirtualHost>
+
+
+# psp
+WKServer localhost %(webwarePort)s
+#AddHandler psp-handler .psp
+Alias /doc %(yammerRoot)s/Yammer/doc
+ErrorDocument 500 /errorpage/500.html
+AddType application/x-x509-ca-cert .crt
+AddType application/x-pkcs7-crl    .crl
+SSLPassPhraseDialog  builtin
+SSLSessionCache         dbm:%(yammerRoot)s/Logs/ssl_scache
+SSLSessionCacheTimeout  300
+SSLMutex  file:%(yammerRoot)s/Logs/ssl_mutex
+SSLRandomSeed startup builtin
+SSLRandomSeed connect builtin
+SSLLog      %(yammerRoot)s/Logs/sslengine.log
+SSLLogLevel info
+<VirtualHost _default_:%(httpdSSLServerPort)s>
+  SSLEngine on
+  SSLCipherSuite ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP:+eNULL
+  SSLCertificateFile %(yammerRoot)s/Configs/server.crt
+  SSLCertificateKeyFile %(yammerRoot)s/Configs/server.key
+  SetEnvIf User-Agent ".*MSIE.*" \
+           nokeepalive ssl-unclean-shutdown \
+           downgrade-1.0 force-response-1.0
+  CustomLog %(yammerRoot)s/Logs/sslrequest.log \
+            "%%t %%h %%{SSL_PROTOCOL}x %%{SSL_CIPHER}x \"%%r\" %%b"
+  RewriteEngine On
+  RewriteRule ^(.*\.psp)$ /WK/Yammer/$1 [L,PT]
+  RewriteRule ^(.*\.py)$ /WK/Yammer/$1 [L,PT]
+  RewriteRule ^(.*)/$ /WK/Yammer/$1/index.psp [L,PT]
+</VirtualHost>

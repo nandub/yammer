@@ -1,0 +1,26 @@
+<%@ page extends="YammerPage" %>
+<%@ page method="writeForm" %>
+
+<%if hasattr(self, "auth"):%>
+<div>
+  Authorization: [<b><%= self.htmlEncode(self.auth) %></b>]
+</div>
+<% end %>
+
+<form method="get">
+  Enter WWW-Authenticate header: <input type="text" name="digest" cols="100">
+  <input type="submit">
+</form>
+
+<psp:method name="respondToGet" params="transaction">
+req= transaction.request()
+resp= transaction.response()
+if req.hasValue("Authorization"):
+  self.auth= req.value('Authorization')
+elif req.hasValue("digest"):
+  digest= req.value('digest')
+  resp.setHeader('WWW-Authenticate', digest)
+  resp.setStatus(401)
+oeust
+self.writeForm()
+</psp:method>

@@ -1,0 +1,169 @@
+<%@ page extends="YammerPage" %>
+<%@ page method="writeContent" %>
+<%@ page import="string,YammerUtils,InstallSettings:settings,time" %>
+
+<%
+# Copyright 2002, 2004 John T. Reese.
+# email: jtr at ofb.net
+# 
+# This file is part of Yammer.
+# 
+# Yammer is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# Yammer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with Yammer; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%>
+
+
+<%
+build= YammerUtils.getBuildNum()
+extra= 0
+if build.endswith('+'):
+  build= build[:-1]
+  extra= 1
+date= time.strftime('%A, %d %B %Y',
+  time.localtime(int(YammerUtils.getUpdateDate())))
+%>
+
+<h1>Welcome to Yammer</h1>
+Version: <%= settings['version'] %><br>
+Build: <%= build %><br>
+<p>
+Yammer comes with <a href="/WARRANTY.txt">ABSOLUTELY NO WARRANTY</a>.
+This is free software, and you are welcome to redistribute it
+under <a href="/COPYING.txt">certain conditions</a>.
+
+<p>
+Yammer is a <a href="/guest/marmaduke.psp">Marmaduke</a> server, which
+means that you can use it to generate or fetch gale key pairs for use
+with another gale client.  You can either use the simple
+<a href="<%= self.hostRoot() + 'WK/Yammer/MdkClientDownload'
+%>">Marmaduke client</a> or use a gale client which implements the 
+protocol.
+
+
+
+
+
+
+
+<h2>Yammer.net</h2>
+<p>
+  This is an experimental web-based <a href="http://gale.org">gale</a>
+  client.  It is a combination log-viewer and posting
+  widget.  
+</p>
+
+<p>
+  After you log in, you will see three panes: a menu pane on the left,
+  not unlike the one you will see to the left of this text; a log view
+  pane on top; and a posting pane on the bottom.  If you have
+  javascript enabled, some subtle features will be enabled, but if
+  not, the system should still work.
+</p>
+
+<p>
+  The log pane displays a fixed number of puffs.  You can click
+  <b>&lt;&lt;</b> to see further back in time, and then <b>&gt;&gt;</b> to 
+  come back to the present.  If the log pane is displaying current
+  messages, it will automatically reload once a minute so you can see
+  new messages.  If you want to see new messages right away, hit the
+  <b>resubscribe</b> button, but keep in mind that the page may not
+  come back immediately.
+</p>
+
+<p>
+  You will need a semi-modern browser.  I test on 
+  Firebird 0.6 and Internet Explorer 5.5. 
+</p>
+
+
+<%
+domains= settings['galeDomains'].split()
+pl= ''
+if len(domains) > 1:
+  pl= 's'
+domains= string.join(domains, ', ')
+%>
+
+<p>
+  This instance of Yammer generates accounts in the following
+  domain<%= pl %>: <%= domains %>.
+</p>
+
+
+<h2><a name="validlocations"></a>Locations</h2>
+
+You may subscribe to the following locations (see
+here for <a href="http://gale.org/locations">conventions</a>):
+<ul>
+<%for s in settings['glogSubscriptions'].split():%>
+<li><%= s %>
+<% end %>
+</ul>
+
+
+<h2>What's new</h2>
+
+
+<p>
+<%= settings['siteName'] %> was last updated on <%= date %>.
+It contains all <a
+href="http://cvstrac.ofb.net/timeline?px=yammer.net">check ins up to
+and including [<%= build
+%>]</a><%if extra:%>
+ with additional local modifications<% end %>.
+
+
+<p>
+
+
+
+<h2>Screenshot</h2>
+<a href="/images/yammer-lep.png">
+  <img border="0"
+    hspace="4"
+    src="/images/yammer-lep-t.png"
+    alt="screenshot"
+    title="screenshot"></a>
+
+<h2>Credits</h2>
+  Code by John T. Reese.<br>
+  Some design work by Wes Nelson.
+  <p>
+  Copyright 2002, 2004 John T. Reese.
+
+<h2>Code</h2>
+
+<p>
+  <a href="http://cvstrac.ofb.net/dir?d=yammer.net">Browse source
+  code</a>
+  <a href="http://cvs.ofb.net/yammer.net/">[viewcvs]</a>
+</p>
+
+To check out the code, which I would not recommend because it has no
+install instructions, and I won't support it:
+<br>
+<pre>
+cvs -d:pserver:cvs@ofb.net:/ofb/cvs login
+(press Enter at the password prompt)
+cvs -d:pserver:cvs@ofb.net:/ofb/cvs co yammer.net
+(checking out pygale is optional)
+cvs -d:pserver:cvs@ofb.net:/ofb/cvs co pygale
+</pre>
+
+<p>
+This code is, as aforementioned, <a href="/COPYING.txt">released
+under the GPL</a>.
+
+
+

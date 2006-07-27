@@ -1,0 +1,5 @@
+- run bin/onetime/adduserdomain
+- update galeDomains in UserSettings
+- update InstallSettings to include userStore and subsQuick and
+  defaultPostLocation and thumbnailServerURL
+

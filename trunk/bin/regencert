@@ -1,0 +1,12 @@
+#!/bin/sh
+
+[ -z "$ENV_HARNESS" ] && exec `dirname $0`/envharness "$0" "$@"
+
+if [ ! -f $YAMMER_ROOT/Configs/server.crt -o \
+     ! -f $YAMMER_ROOT/Configs/server.key -o "$1" = -f ]; then
+
+  openssl genrsa 1024 > $YAMMER_ROOT/Configs/server.key
+  openssl req -new -x509 -days 3650 -key $YAMMER_ROOT/Configs/server.key \
+    > $YAMMER_ROOT/Configs/server.crt
+
+fi

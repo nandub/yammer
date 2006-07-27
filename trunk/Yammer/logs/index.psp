@@ -1,0 +1,284 @@
+<%@ page extends="GaleClientYammerPage" %>
+<%@ page method="writeContent" %>
+<%@ page imports="sys,string,time,GaleDB,Gale,InstallSettings:settings" %>
+<%@ page imports="AuthYammerPage,SiteHTML" %>
+
+<%
+# Copyright 2002, 2004 John T. Reese.
+# email: jtr at ofb.net
+# 
+# This file is part of Yammer.
+# 
+# Yammer is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# Yammer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with Yammer; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%>
+
+
+<script type="text/javascript">
+function blitLocation(to) {
+  document.logq.location.value= to;
+}
+function blitSender(to) {
+  document.logq.sender.value= to;
+}
+function hideSearchCriteria() {
+  sc= document.getElementById("searchCriteria");
+  sc2= document.getElementById("criteriaHidden");
+  sc.style.display= "none";
+  sc2.style.display= "";
+}
+function showSearchCriteria() {
+  sc= document.getElementById("searchCriteria");
+  sc2= document.getElementById("criteriaHidden");
+  sc.style.display= "";
+  sc2.style.display= "none";
+}
+</script>
+
+<%
+self.orderTerms= ['most recent first', 'conversation order']
+qkeys= 'sender location booty body datestart dateend'.split()
+self.qkeys= [x for x in qkeys if req.hasField(x)
+                         and len(req.field(x).strip()) > 0]
+datestart= self.f('datestart')
+if len(datestart) == 0 and len(self.qkeys) == 0:
+  datestart= '1:00'
+skim= 0
+if req.hasField('submit') and req.field('submit').lower() == 'skim':
+  skim= 1
+self.asc= 0
+if req.hasField('order') and req.field('order').lower() == 'asc':
+  self.asc= 1
+%>
+
+<div id="searchCriteria">
+  <a href="javascript:hideSearchCriteria()">[-]</a>
+  <b>Search Criteria</b><br>
+  <form name="logq" method="GET" action="<%= self.getStrippedUri() %>">
+  Sender:
+  <input type="text" name="sender" value="<%= self.f('sender') %>"><br>
+  Location:
+  <input type="text" name="location" value="<%= self.f('location') %>"><br>
+  Puff text:
+  <input type="text" name="body" value="<%= self.f('body') %>"><br>
+  Date range:
+  <input type="text" name="datestart" value="<%= datestart %>">
+  to
+  <input type="text" name="dateend" value="<%= self.f('dateend') %>">
+  <span class="fromTime">example date: 2004-01-07 15:30</span>
+  <select name="order">
+    <option value="desc"
+    <%if not self.asc:%>
+      selected="selected"
+    <% end %>
+    ><%= self.orderTerms[0] %></option>
+    <option value="asc"
+    <%if self.asc:%>
+      selected="selected"
+    <% end %>
+    ><%= self.orderTerms[1] %></option>
+  </select>
+  <br>
+  <input name="submit" type="submit" value="Search">
+  <input name="submit" type="submit" value="Skim">
+  </form>
+</div>
+<div id="criteriaHidden" style="display: none">
+  <a href="javascript:showSearchCriteria()">[+]</a>
+  Show search criteria
+</div>
+
+
+<%if len(self.qkeys) > 0:%>
+<script type="text/javascript">
+  hideSearchCriteria();
+</script>
+<hr>
+
+<%
+urlargs= '?' + string.join(['%s=%s' % (k, self.f(k))
+                            for k in self.qkeys], '&')
+url= self.getStrippedUri() + urlargs
+try:
+  if skim:
+    self.skimLogs(datestart, self.f('dateend'))
+  else:
+    if self.f('body') == '':
+      self.writeln('<div>Order:&nbsp;&nbsp;')
+      for i in [0, 1]:
+        u= self.getStrippedUri() + urlargs
+        if i == 1:
+          u += '&order=asc'
+          self.writeln('&nbsp;|&nbsp;')
+        if i != self.asc:
+          self.writeln('<a href="%s">' % u)
+        else:
+          self.writeln('<b>')
+        self.write(self.orderTerms[i])
+        if i != self.asc:
+          self.writeln('</a>')
+        else:
+          self.writeln('</b>')
+      self.writeln('</div>')
+    self.writeLogTable()
+  self.writeln('<hr>')
+
+  # since this is in a conditional block that can only
+  # be reached if there is at least one query term, it is 
+  # safe to assume we are not adding the first get argument
+  # and hence it is safe to use '&'
+  if self.asc:
+    url += '&order=asc'
+  if skim:
+    url += '&submit=skim'
+  self.writeln('<a href="%s">link to these results</a>' % url)
+
+  # why not
+  self.writeln('''<a href="%s">repeat search with tlau's logs''' %
+    ('http://tlau.org/glog/query.cgi' + urlargs))
+except ValueError, arg:%>
+<span class="error"><%= `arg` %></span>
+
+
+<% end %>
+
+<% end %>
+
+
+<% end %>
+
+<psp:method name="f" params="field">
+  if self._request.hasField(field):
+    return self._request.field(field)
+  return ''
+</psp:method>
+
+<psp:method name="senderClause" params="sender">
+  return ["sender LIKE '%%" + sender + "%%'"], None, None
+</psp:method>
+
+<psp:method name="locationClause" params="locs">
+  return [GaleDB.locWhereClause(locs.split())], None, None
+</psp:method>
+
+<psp:method name="bodyClause" params="body">
+  return ["MATCH (body) AGAINST ('" + body + "')"], '', 'LIMIT 100'
+</psp:method>
+
+<psp:method name="bootyClause" params="body">
+  return ["body LIKE '%%" + body + "%%'"], None, 'LIMIT 1000'
+</psp:method>
+
+<psp:method name="datestartClause" params="datestart">
+  date= self.regularizeDate(datestart)
+  return ["ssdate >= '%s'" % date], None, None
+</psp:method>
+
+<psp:method name="dateendClause" params="dateend">
+  date= self.regularizeDate(dateend)
+  return ["ssdate <= '%s'" % date], None, None
+</psp:method>
+
+<psp:method name="regularizeDate" params="date">
+  regdate= None
+  for fmt in ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d', '%m-%d', '%H:%M',
+      '%Y-%m-%d %H:%M', '%H:%M:%S']:
+    try:
+      regdate= time.strptime(date, fmt)
+      if not fmt.startswith('%Y'):
+        lt= time.localtime(time.time())
+        regdate= lt[0:3] + regdate[3:]
+    except ValueError:
+      pass
+  if regdate is not None:
+    return time.strftime('%Y-%m-%d %H:%M:%S', regdate)
+  raise ValueError, 'time format not recognized'
+</psp:method>
+
+<psp:method name="getPuffs">
+  whereclauses, orderclause, limitclause= ['encrypted=0'], None, None
+  for qk in self.qkeys:
+    method= qk + 'Clause'
+    w,o,l= apply(getattr(self, method),
+      [self._request.field(qk).strip()])
+    if w is not None: whereclauses += w
+    if o is not None: orderclause= o
+    if l is not None: limitclause= l
+
+  if orderclause is None: orderclause= 'ORDER BY ssdate'
+  if limitclause is None: limitclause= ''
+  puffs= GaleDB.getPuffs(whereclauses, orderclause, limitclause)
+  if self.asc:
+    puffs.reverse()
+  return puffs
+</psp:method>
+
+<psp:method name="skimLogs" params="datestart,dateend">
+  puffs= self.getPuffs()
+  threads= {}
+  for puff in puffs:
+    for to in puff['locations']:
+      if threads.has_key(to):
+        threads[to] += 1
+      else:
+        threads[to]= 1
+  self.writeln('<table>')
+  rcg= SiteHTML.rowClassGenerator()
+  ks= threads.keys()
+  ks.sort(lambda x,y,t=threads: cmp(t[y], t[x]))
+  for k in ks:
+    self.writeln('''
+      <tr class="%s">
+        <td><a href="%s?location=%s&datestart=%s&dateend=%s&order=asc">%s</td>
+        <td>%s</td>
+      </tr>
+      ''' % (rcg.next(), self.getStrippedUri(), k, datestart, dateend,
+      k, threads[k]))
+  self.writeln('</table>')
+</psp:method>
+
+<psp:method name="calcPrevnext" params="i">
+  return ''
+</psp:method>
+
+<psp:method name="renderGaleid" params="id">
+  username= self.peekUsername()
+  if username is not None:
+    return GaleClientYammerPage.GaleClientYammerPage.renderGaleid(self, id)
+  else:
+    sigbits= id.split('@', 1)
+    if len(sigbits) == 2:
+      return "<b>%s-galelog</b>@%s" % (sigbits[0], sigbits[1])
+    else:
+      return "<b>%s</b>" % (sigbits[0])
+</psp:method>
+
+<psp:method name="requiresAuth">
+  return 0
+</psp:method>
+
+<psp:method name="userLink" params="sig">
+  if self.peekUsername() is not None:
+    return GaleClientYammerPage.GaleClientYammerPage.userLink(self, sig)
+  else:
+    return '', ''
+</psp:method>
+
+<psp:method name="awake" params="trans">
+AuthYammerPage.AuthYammerPage.awake(self, trans)
+</psp:method>
+
+<psp:method name="modifyKeywords" params="cats,kwds">
+  return string.join(cats + ['/'+x for x in kwds])
+</psp:method>

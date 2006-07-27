@@ -1,0 +1,171 @@
+#!/usr/bin/python
+
+import sys
+import os, os.path
+if not os.environ.has_key('ENV_HARNESS'):
+  envh= os.path.dirname(sys.argv[0]) + '/envharness'
+  os.execv(envh, [envh] + sys.argv)
+
+import getopt, time, string, re
+from Gale import *
+from YGaleClient import YGaleClient
+from InstallSettings import settings
+
+pygale.DEBUG = 1
+engine.DEBUG = 1
+import MySQLdb, GaleDB
+import traceback, StringIO
+from pygale import pygale
+
+NOEXECUTE = 0
+
+def usage(arg):
+  print_msg("Usage: %s location [location ...]" % arg)
+
+def print_msg(msg):
+  date = time.strftime('%m-%d %H:%M:%S ',
+    time.localtime(time.time()))
+  msg = date + string.strip(msg)
+  print msg
+  sys.stdout.flush()
+
+def formatWithCharset(s):
+  charset = pygale.gale_env.get('GALE_CHARSET',
+    pygale.gale_env.get('CHARSET', 'ascii'))
+  try:
+    return s.encode(charset, 'replace')
+  except LookupError:
+    # quietly default to ascii if specified charset doesn't work
+    return s.encode('ascii', 'replace')
+
+def logpuff(puff):
+  print_msg('Logged a puff')
+  try:
+    p= {}
+    p['locations']= puff.get_loc().split()
+    location= string.join(p['locations'], ' ')
+    p['sender']= puff.get_signer()
+    p['from']= puff.get_text_first('message/sender', None)
+    p['ssdate']= time.strftime('%Y-%m-%d %H:%M:%S',
+      time.localtime(time.time()))
+    p['date']= None
+    if puff.get_time_first('id/time', None):
+      p['date']= time.strftime('%Y-%m-%d %H:%M:%S',
+        time.localtime(puff.get_time_first('id/time')))
+    bin= puff.get_binary_first('security/encryption')
+    if len(puff.get_text('message/body')) == 0:
+      if len(puff.get_text('notice/presence')) > 0:
+        p['body']= re.sub('\r\n', '\n', 
+          unicode(puff.get_text_first('notice/presence', '')))
+      else:
+        p['body']= ''
+    else:
+      p['body']= re.sub('\r\n', '\n', 
+        unicode(puff.get_text_first('message/body', '')))
+    recips= puff.get_recipients()
+    p['encrypted']= int(recips is not None and len(recips) > 0)
+    if p['encrypted']:
+      p['body']= obscureString(p['body'])
+    keyw = puff.get_text('message.keyword')
+    #lowercase_keyw = map(string.lower, keyw)
+    if 'nolog' in keyw:
+      print_msg('NOLOG in %s from %s' % (location, p['sender']))
+      return
+    if keyw:
+      p['keywords']= keyw
+    else:
+      p['keywords']= []
+
+    print_msg('%s from %s' % (formatWithCharset(location),
+      formatWithCharset(p['sender'])))
+    if not NOEXECUTE:
+      GaleDB.insertPuff(p)
+  except:
+    s= StringIO.StringIO()
+    traceback.print_exception(sys.exc_type, sys.exc_value,
+      sys.exc_traceback, None, s)
+    f= os.popen('mail -s "gale logs failed" ' + \
+      settings['maintEmail'], 'w')
+    f.write(s.getvalue())
+    f.close()
+    s.close()
+
+def recvpuffs(sub, quiet):
+  conn= YGaleClient()
+  conn.set_onconnect(lambda host, c=conn, s=sub, q=quiet:
+    subscribe(host, c, s, q))
+  host= conn.connect()
+  if host is None:
+    print_msg('Unable to connect to a gale server')
+    return
+
+  # Loop infinitely, calling our callback on each new puff
+  conn.next()
+
+def subscribe(host, conn, sub, quiet):
+  print_msg('Connected to %s' % host)
+  if not quiet:
+    sender = gale_env.get('GALE_FROM', 'Unknown sender')
+    pygale.notify_in('in.logging', conn, fullname=sender)
+    pygale.notify_out('out.disconnected', conn, fullname=sender)
+
+  # Subscribe to a list of locations
+  print_msg('subs: %r' % sub)
+  bad, good = conn.sub_to(sub)
+  print_msg('bad good %r %r' % (bad, good))
+  if bad:
+    for b in bad:
+      print_msg('Unable to find location %s' % b)
+  if not good:
+    print_msg('No locations found')
+    sys.exit(-1)
+  else:
+    for g in good:
+      print_msg('Subscribed to %s' % g)
+  
+  # Set up the callback on new puffs
+  print_msg('Setting up puff callback')
+  conn.set_puff_callback(logpuff)
+
+def main():
+  opts, args = getopt.getopt(sys.argv[1:], 'd:af:n')
+  quiet = 0
+  sub = None
+  for opt, val in opts:
+    if opt == '-d':
+      pygale.DEBUG = int(val)
+      engine.DEBUG = int(val)
+    elif opt == '-a':
+      quiet = 1
+    elif opt == '-f':
+      conffile = val
+      if not os.path.exists(conffile):
+        print_msg('Configuration file %s not found' % conffile)
+        sys.exit(1)
+      sub = map(string.strip, open(conffile, 'r').readlines())
+    elif opt == '-n':
+      global NOEXECUTE
+      NOEXECUTE = 1
+  sub = settings['glogSubscriptions'].split()
+  if len(args) < 1 and not sub:
+    usage(sys.argv[0])
+    sys.exit()
+  elif not sub:
+    sub = args
+  
+  pygale.init()
+  sys.exitfunc = pygale.shutdown
+  pygale.set_error_handler(print_msg)
+  pygale.set_update_handler(print_msg)
+
+  global DBCONN, CURSOR
+  if not NOEXECUTE:
+    DBCONN = MySQLdb.connect(host='localhost',
+      user= settings['dbUser'],
+      passwd= settings['dbPassword'])
+    CURSOR = DBCONN.cursor()
+  print_msg('Starting to receive puffs')
+  recvpuffs(sub, quiet)
+
+if __name__ == '__main__':
+  main()

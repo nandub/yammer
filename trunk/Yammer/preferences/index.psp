@@ -1,0 +1,317 @@
+<%@ page extends="AuthYammerPage" %>
+<%@ page method="writeContent" %>
+<%@ page imports="YammerPage,os,glob,UserPrefs,InstallSettings:settings" %>
+<%@ page imports="types:*,SiteHTML" %>
+
+<%
+# Copyright 2002, 2004 John T. Reese.
+# email: jtr at ofb.net
+# 
+# This file is part of Yammer.
+# 
+# Yammer is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# Yammer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with Yammer; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%>
+
+
+
+<%
+pkeys= self.u.keys()
+%>
+
+<form name="prefsform" method="post">
+  <table class="puffview" border="0">
+
+<%
+self.rcg= SiteHTML.rowClassGenerator()
+
+stylesheetDir= self.getStylesheetPath()
+potentials= glob.glob(stylesheetDir + '*.css')
+actuals= [os.path.splitext(os.path.basename(x))[0] for x in potentials]
+actuals.sort()
+actuals= [x for x in actuals if not x.startswith('_')]
+cur= self.u['stylesheet']
+thump= ''
+for actual in actuals:
+  thump= thump + ('<option value="%s"' % actual)
+  if cur == actual:
+    thump= thump + (' selected')
+  thump= thump + ('>%s</option>' % actual)
+self.printControl('stylesheet', '''
+    <select onchange="document.prefsform.submit()"
+      name="%(pkey)s">''' + thump + '''
+    </select>''')
+
+#cuz, with the javascript
+#self.printRadioControl('stylesheet', filter)
+
+if len(self.u['email.address']) == 0:
+  self.printControl('email.address', '''
+      <input type="text" size="60" name="%(pkey)s"
+        value="%(pvalue)s">''')
+else:
+  self.printControl('email.address', '''
+      <input disabled type="text" size="60" name="%(pkey)s"
+        value="%(pvalue)s">''')
+
+self.printControl('gale.sender', '''
+    <input type="text" size="60" name="%(pkey)s"
+      value="%(pvalue)s">''')
+
+self.printControl('subs.quick', '''
+    <input type="text" size="60" name="%(pkey)s"
+      value="%(pvalue)s">''')
+
+self.printControl('send.geometry', '''
+    <input type="text" size="3" name="%(pkey)s"
+      value="%(pvalue)s">''')
+
+self.printControl('logpager.puffcount', '''
+    <input type="text" size="3" name="%(pkey)s"
+      value="%(pvalue)s">''')
+
+self.printRadioControl('front.page', [
+  ['/gale/logbased/frameset.psp', 'full-featured'],
+  ['/gale/logbased/dynammer.psp', 'experimental'],
+  ['/gale/logbased/consolidated.psp', 'mobile']])
+
+# certain settings are fixed in mobile mode
+if not self.u['front.page'].endswith('consolidated.psp'):
+
+  self.printRadioControl('resub.bar',
+    ['top', 'bottom', 'both'])
+
+  self.printCheckControl('do.autorefresh', 'Refresh automatically')
+  self.printCheckControl('compact.display',
+    'Display messages in compact format')
+
+self.printRadioControl('thumbnail.shrink',
+  ['full-size', 'half-size', 'none'])
+
+%>
+          <tr>
+            <input type="hidden" name="_action_" value="save preferences">
+            <td align="right" valign="top" colspan="2">
+              <input type="submit"   value="save preferences">
+            </td>
+          </tr>
+        </table>
+      </form>
+
+
+
+
+<%if self.changed.has_key('stylesheet'):%>
+<%rcg= SiteHTML.rowClassGenerator()%>
+<p>
+<table class="puffview" width="100%">
+  <tr>
+    <td colspan="2">
+      Sample puff formatting using
+        <b><%= self.u['stylesheet'] %></b>
+        stylesheet.
+    </td>
+  </tr>
+
+  <tr class="<%= rcg.next() %>">
+    <%= self.thumbCell("wesn.jpg") %>
+    <td class="puff">
+      <div class="header">
+        <div class="location">
+          To: <a href="">pub.location</a>
+        </div>
+        <div class="fromTime">
+          From: <a href="">wesn@dom.ain</a>
+            &nbsp;&nbsp;(Wes Nelson)  3/15/2003 2:30:35 PM
+        </div>
+      </div>
+      <div class="body">
+        When a numerical value is specified,
+        the line height is given by the font
+        size of the current element multiplied
+        with the numerical value. This differs
+        from a percentage value in the way it
+        inherits: when a numerical value is
+        specified, child elements will inherit
+        the factor itself, not the resultant
+        value (as is the case with percentage
+        and other units).<br>
+        <a href="">link</a>
+      </div>
+    </td>
+  </tr>
+
+  <tr class="<%= rcg.next() %>">
+    <%= self.thumbCell("jtr.jpg") %>
+    <td class="puff">
+      <div class="header">
+        <div class="location">
+          To: <a href="">pub.location</a>
+        </div>
+        <div class="fromTime">
+          From: <a href="">jtr@dom.ain</a>
+            &nbsp;&nbsp;(John Reese)  3/15/2003 2:30:35 PM
+        </div>
+      </div>
+      <div class="body">
+        Homer: [chanting] And lift ... and
+        strain ... and hyper-extend!<br/> Keep
+        those knees rigid! Jerk that lower
+        back!<br/> Kim: Homer, I'm feeling
+        some sharp pains in my neck.<br/>
+        Homer: That's right, force it! Whip
+        that neck!<br/> -- Don't try this at
+        home, "When You Dish Upon a Star"<br/>
+      </div>
+    </td>
+  </tr>
+
+  <tr class="<%= rcg.next() %> private">
+    <%= self.thumbCell("jtr.jpg") %>
+    <td class="puff">
+      <div class="header">
+        <div class="location">
+          To: <a href="">wesn@dom.ain jtr@dom.ain</a>
+        </div>
+        <div class="fromTime">
+          From: <a href="">jtr@dom.ain</a>
+            &nbsp;&nbsp;(John Reese)  3/15/2003 2:30:35 PM
+        </div>
+      </div>
+      <div class="body">
+      <img class="encrypted" 
+        alt="Only jtr@dom.ain and wesn@dom.ain can see this message"
+        title="Only jtr@dom.ain and wesn@dom.ain can see this message"
+        src="/images/key.png"/>
+Who is it? It is the *not Campers*.<br>
+Maybe you have come to Taalo *playground* for a *picnic*.<br>
+No!!! It is not the case! *Silly Cows* can never have a *picnic*.<br>
+Of course. Not even a *party*.<br>
+If you are gone, Orz can have *fun* some more.<br>
+-- orz<br>
+      </div>
+    </td>
+  </tr>
+
+</table>
+<% end %>
+
+<psp:method name="printControl" params="pkey, fmtstring">
+  pvalue= self.u[pkey]
+  pdisplay= self.u.getDisplay(pkey)
+  if pdisplay.find(' // ') > 0:
+    pd, pdc= pdisplay.split(' // ')
+  else:
+    pd= pdisplay
+    pdc= ''
+  row= self.rcg.next()
+  self.writeln(('''
+    <tr class="%(row)s">
+      <td class="puff" align="right" valign="top">
+        <div class="prefHeading">
+          %(pd)s
+        </div>
+      </td>
+      <td valign="top" align="left">
+        <div class="body">''' +
+        fmtstring + '''
+        </div>
+        <div class="fromTime">
+          %(pdc)s
+        </div>
+        <p>
+      </td>
+    </tr>
+        
+    ''') % locals())
+</psp:method>
+
+
+<psp:method name="printCheckControl" params="pkey, message">
+  cur= self.u[pkey]
+  fmtstring= ''
+  fmtstring= '<input type="checkbox" name="%(pkey)s" value="yes"'
+  if cur == 'yes':
+    fmtstring= fmtstring + " checked"
+  fmtstring= fmtstring + ">" + message
+  self.printControl(pkey, fmtstring)
+</psp:method>
+
+<psp:method name="printRadioControl" params="pkey, options">
+  cur= self.u[pkey]
+  fmtstring= ''
+  for opt in options:
+    if type(opt) is ListType:
+      (optvalue, optdisplay)= opt
+    else:
+      (optvalue, optdisplay)= (opt, opt)
+    fmtstring= fmtstring + \
+      '<input type="radio" name="%(pkey)s" value="' + optvalue + \
+      '"'
+    if cur == optvalue:
+      fmtstring= fmtstring + " checked"
+    fmtstring= fmtstring + ">" + optdisplay + "<br>"
+  self.printControl(pkey, fmtstring)
+</psp:method>
+
+<psp:method name="thumbCell" params="image">
+  thumbnailscale= ''
+  if self.u['thumbnail.shrink'] == 'half-size':
+    thumbnailscale= ' height="40"'
+  if self.u['thumbnail.shrink'] != 'none':
+    return """
+      <td align="center" class="thumb">
+        <img src="%(image)s" alt="thumbnail" %(thumbnailscale)s>
+      </td>
+      """ % locals()
+  else:
+    return ""
+</psp:method>
+
+<psp:method name="awake" params="trans">
+AuthYammerPage.AuthYammerPage.awake(self, trans)
+self.changed= {}
+</psp:method>
+
+<psp:method name="actions">
+  return AuthYammerPage.AuthYammerPage.actions(self) + ['save preferences']
+</psp:method>
+
+<psp:method name="actionSavePreferences" params="trans">
+  pkeys= self.u.keys()
+  req= self._request
+  self.noticeMessage= ''
+  for pkey in pkeys:
+    if self.u.isBoolean(pkey):
+      if req.hasField(pkey):
+        pvalue= req.field(pkey)
+#        if pkey == 'compact.display' and pvalue == 'yes':
+#          if self.u['thumbnail.shrink'] == 'full-size':
+#            self.u['thumbnail.shrink']= 'half-size'
+#            self.changed['thumbnail.shrink']= 1
+      else:
+        pvalue= 'no'
+    elif req.hasField(pkey):
+      pvalue= req.field(pkey)
+      self.noticeMessage= self.noticeMessage + \
+        '<!-- %s: %s -->' % (pkey, pvalue)
+    else:
+      continue
+    if pvalue != self.u[pkey]:
+      self.u[pkey]= pvalue
+      self.noticeMessage += 'updated %s<br>' % pkey
+      self.changed[pkey]= 1
+  self.writeHTML()
+</psp:method>
+
