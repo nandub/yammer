@@ -358,26 +358,21 @@ class YammerPage(Page):
     mi('help', '/guest/')
     mi('logs', '/logs/')
     mi('today', '/logs/?datestart=0:00&submit=skim')
-    #mi('known bugs', "http://cvstrac.ofb.net/rptview?rn=6")
-    #mi('file bug', self.getFileTicketUrl({}))
-    #mi('suggest feature', self.getFileTicketUrl({'y': 'new'}))
+    mi('known bugs', "http://code.google.com/p/yammer/issues/list")
+    mi('file bug or suggest feature', self.getFileTicketUrl())
     mh('Gale')
     mi('gale.org', 'http://gale.org/')
     mi('faq', 'http://wiki.ofb.net/?GaleFaq')
     self.writeln('</span></td>')
 
-  def getFileTicketUrl(self, argdict):
-    argdict['v']= self.urlEncode(YammerUtils.getVersionString())
-    argdict['w']= 'jtr'
-    argdict['s']= 'yammer.net'
+  def getFileTicketUrl(self):
+    comment= 'Reported in version %s' % YammerUtils.getVersionString()
     username= self.getUsername()
     if username is not None:
-      argdict['d']= self.urlEncode('(problem description here)\n\n_%s_'
-                                   % self.getGaleId())
-    getstring= string.join(['%s=%s' % (k, argdict[k])
-                            for k in argdict.keys()],
-                           '&')
-    return 'http://cvstrac.ofb.net/tktnew?' + getstring
+      comment += ' by %s' % self.getGaleId()
+    comment += '\n\nProblem description:\n'
+    return 'http://code.google.com/p/yammer/issues/entry?comment=%s' % (
+        self.urlEncode(comment))
 
   def writeContent(self):
     self.writeln("yammer.net")

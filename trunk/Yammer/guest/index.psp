@@ -26,17 +26,13 @@
 
 <%
 build= YammerUtils.getBuildNum()
-extra= 0
-if build.endswith('+'):
-  build= build[:-1]
-  extra= 1
-date= time.strftime('%A, %d %B %Y',
-  time.localtime(int(YammerUtils.getUpdateDate())))
+date= YammerUtils.getUpdateDate()
 %>
 
 <h1>Welcome to Yammer</h1>
 Version: <%= settings['version'] %><br>
 Build: <%= build %><br>
+Last updated: <%= date %><br>
 <p>
 Yammer comes with <a href="/WARRANTY.txt">ABSOLUTELY NO WARRANTY</a>.
 This is free software, and you are welcome to redistribute it
@@ -58,9 +54,9 @@ protocol.
 
 <h2>Yammer.net</h2>
 <p>
-  This is an experimental web-based <a href="http://gale.org">gale</a>
-  client.  It is a combination log-viewer and posting
-  widget.  
+  This is an web-based <a href="http://gale.org">Gale</a>
+  client.  One way to think of it is a combination of a log-viewer and
+  posting widget.  
 </p>
 
 <p>
@@ -83,7 +79,7 @@ protocol.
 
 <p>
   You will need a semi-modern browser.  I test on 
-  Firebird 0.6 and Internet Explorer 5.5. 
+  Firebird 1.5.0.
 </p>
 
 
@@ -112,22 +108,6 @@ here for <a href="http://gale.org/locations">conventions</a>):
 </ul>
 
 
-<h2>What's new</h2>
-
-
-<p>
-<%= settings['siteName'] %> was last updated on <%= date %>.
-It contains all <a
-href="http://cvstrac.ofb.net/timeline?px=yammer.net">check ins up to
-and including [<%= build
-%>]</a><%if extra:%>
- with additional local modifications<% end %>.
-
-
-<p>
-
-
-
 <h2>Screenshot</h2>
 <a href="/images/yammer-lep.png">
   <img border="0"
@@ -140,25 +120,25 @@ and including [<%= build
   Code by John T. Reese.<br>
   Some design work by Wes Nelson.
   <p>
-  Copyright 2002, 2004 John T. Reese.
+  Copyright 2002, 2006 John T. Reese.
 
 <h2>Code</h2>
 
 <p>
-  <a href="http://cvstrac.ofb.net/dir?d=yammer.net">Browse source
+<a href="http://code.google.com/p/yammer/">Google Code project
+page.</a>
+</p>
+
+<p>
+  <a href="http://yammer.googlecode.com/svn/">Browse source
   code</a>
-  <a href="http://cvs.ofb.net/yammer.net/">[viewcvs]</a>
 </p>
 
 To check out the code, which I would not recommend because it has no
-install instructions, and I won't support it:
+install instructions and I won't support it:
 <br>
 <pre>
-cvs -d:pserver:cvs@ofb.net:/ofb/cvs login
-(press Enter at the password prompt)
-cvs -d:pserver:cvs@ofb.net:/ofb/cvs co yammer.net
-(checking out pygale is optional)
-cvs -d:pserver:cvs@ofb.net:/ofb/cvs co pygale
+svn checkout http://yammer.googlecode.com/svn/trunk/ yammer
 </pre>
 
 <p>
