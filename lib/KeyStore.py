@@ -41,8 +41,8 @@ def privPath(recp):
 
 def getFullname(keyname):
   n, k= lookup_location(keyname, do_akd=False)
-  if isinstance(k[0], basestring):
-    return "?? %s ??" % k[0]
+  if not isinstance(k, (tuple, list)) or not hasattr(k[0], 'comment'):
+    return '?? %r ??' % k
   return k[0].comment()
 
 def userFromKey(key):

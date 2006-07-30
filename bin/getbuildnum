@@ -2,48 +2,17 @@
 
 [ -z "$ENV_HARNESS" ] && exec `dirname $0`/envharness "$0" "$@"
 
-CVSTRACDB=/ofb/cvs/cvstrac/ofb.db
-SQLITE=/usr/bin/sqlite
 VERSIONFILE=$YAMMER_ROOT/buildnum
-CVSTRACURL=http://cvstrac.ofb.net/timeline
 
-[ "$1" = -q ] && QUIET=t
-
-# detect a development environment
-# to wit: presence of the cvs trac database for ofb, the Debian sqlite
-# executable, and a CVS tree (as opposed to a distribution directory)
-if [ -r "$CVSTRACDB" ]; then
-  if [ -x "$SQLITE" ]; then
-    if [ `find $YAMMER_ROOT -path '*CVS/Entries' | wc -l` -gt 0 ]; then
-
-      # fetch cvs trac timeline to force update of change numbers
-      wget -qO/dev/null $CVSTRACURL 
-
-      # grab latest change # from cvs trac
-      CHANGE=`$SQLITE $CVSTRACDB \
-        "select date,cn from chng order by date desc limit 1"`
-
-      # get latest version from cvs trunk
-      cd $YAMMER_ROOT
-      TMP=/tmp/`basename $0`-$$
-      cvs up -dPA 2>/dev/null > $TMP
-      if grep '^[ARM]' $TMP > /dev/null; then
-        DELTA='+'
-      fi
-
-      [ -z "$QUIET" ] && cat $TMP
-      rm -f $TMP
-
-      # save date, change number, and + if local mods
-      echo $CHANGE$DELTA | tee $VERSIONFILE
-
-      exit 0
-    fi
-  fi
+type svnversion >&- && SVNVERSION=`svnversion "$YAMMER_ROOT"`
+type svn >&- && SVNDATE=$(svn info $YAMMER_ROOT |
+  awk '/Changed Date/ {print gensub(/.*e: ([^(]*) \(.*$/, "\\1", "")}')
+if [ -n "$SVNVERSION" -a -n "$SVNDATE" ]; then
+  echo "$SVNDATE|$SVNVERSION" > "$VERSIONFILE"
 fi
 
 if [ -f "$VERSIONFILE" ]; then
-  cat $VERSIONFILE
+  cat "$VERSIONFILE"
 else
   echo No buildnum file, exiting 1>&2
   exit 1

@@ -19,17 +19,22 @@
 
 
 from InstallSettings import settings
-import os, commands, sys
+import os, commands, sys, errno
 import threading, textwrap
 
 def getVersionString():
   return settings['version'] + '.' + getBuildNum()
 
 def getBuildInfo():
-  fp= open(settings['yammerRoot'] + '/buildnum')
-  buildnum= fp.readline()
-  fp.close()
-  return buildnum.strip().split('|')
+  try:
+    fp= open(settings['yammerRoot'] + '/buildnum')
+  except IOError, ioe:
+    if ioe.errno != errno.ENOENT:
+      raise
+    return ('?', '?')
+  else:
+    buildnum= fp.readline()
+    return buildnum.strip().split('|')
 
 def getUpdateDate():
   return getBuildInfo()[0]

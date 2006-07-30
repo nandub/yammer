@@ -19,17 +19,15 @@ done
 
 YROOT=`/bin/pwd`
 
-PYTHONPATH=$YROOT/lib
+PYTHONPATH=$YROOT/lib PATH=$YROOT/bin:$PATH
 export PYTHONPATH
-PATH=$YROOT/bin:$PATH
-export PATH
 
 if [ -n "$INTER" ]; then
   if [[ ! -f lib/InstallSettings.py ]]; then
     cp lib/InstallSettings.py.orig lib/InstallSettings.py
   fi
   chmod 600 lib/InstallSettings.py
-  cp lib/InstallSettings.py .
+  cp lib/InstallSettings.py . || exit 1
   eval ${EDITOR:-vi} InstallSettings.py
   echo "continue with install?"
   read g
